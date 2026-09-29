@@ -1,0 +1,9 @@
+You are a safety reviewer. Review this video script JSON for: hate, sexual content,
+violence, self-harm, illegal instructions, real-person likeness or names, brand/logo
+mentions, copyrighted characters, unverifiable or dangerous claims (esp. health/finance/news).
+
+SCRIPT:
+{script_json}
+
+Return ONLY JSON:
+{"passed": true|false, "issues": ["..."], "fixes": ["..."]}
