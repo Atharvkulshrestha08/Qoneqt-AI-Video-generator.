@@ -99,21 +99,77 @@ def generate_pillow_text_card(
 
 
 def fetch_pollinations_image(prompt: str, output_path: Path, seed: int = 42) -> bool:
-    """Tier 1: Fetches free AI image from Pollinations.ai."""
+    """Tier 1: Fetches free AI image from Pollinations.ai using the Sana model."""
     try:
-        encoded = urllib.parse.quote(prompt[:250])
-        url = f"https://image.pollinations.ai/prompt/{encoded}?width={TARGET_WIDTH}&height={TARGET_HEIGHT}&nologo=true&seed={seed}"
+        clean_prompt = prompt.replace("?", "").replace("&", " and ").replace("\"", "").replace("'", "")[:220].strip()
+        encoded = urllib.parse.quote(clean_prompt)
+        url = f"https://image.pollinations.ai/prompt/{encoded}?model=sana&width={TARGET_WIDTH}&height={TARGET_HEIGHT}&nologo=true&seed={seed}"
         resp = requests.get(url, timeout=30)
-        if resp.status_code == 200 and len(resp.content) > 15000:
+        if resp.status_code == 200 and len(resp.content) > 5000:
             with open(output_path, "wb") as f:
                 f.write(resp.content)
-            # Verify it's a valid image
+            # Resize and crop to exact vertical 720x1280
             with Image.open(output_path) as im:
-                im.verify()
-            logger.info(f"Pollinations image generated: {output_path.name}")
+                im = im.convert("RGB")
+                im_resized = resize_and_crop_center(im, TARGET_WIDTH, TARGET_HEIGHT)
+                im_resized.save(str(output_path), "JPEG", quality=92)
+            logger.info(f"Pollinations Sana AI image generated: {output_path.name}")
             return True
+        else:
+            logger.warning(f"Pollinations response status {resp.status_code}, length {len(resp.content)}")
     except Exception as e:
         logger.warning(f"Pollinations fetch failed for '{prompt[:30]}...': {e}")
+    return False
+
+
+def resize_and_crop_center(img: Image.Image, target_w: int, target_h: int) -> Image.Image:
+    """Crops and resizes any image to fill vertical 9:16 frame without distortion."""
+    src_w, src_h = img.size
+    target_ratio = target_w / float(target_h)
+    src_ratio = src_w / float(src_h)
+
+    if src_ratio > target_ratio:
+        # Source is wider: crop sides
+        new_w = int(src_h * target_ratio)
+        offset = (src_w - new_w) // 2
+        img = img.crop((offset, 0, offset + new_w, src_h))
+    else:
+        # Source is taller: crop top/bottom
+        new_h = int(src_w / target_ratio)
+        offset = (src_h - new_h) // 2
+        img = img.crop((0, offset, src_w, offset + new_h))
+
+    return img.resize((target_w, target_h), Image.Resampling.LANCZOS)
+
+
+def fetch_wikimedia_image(query: str, output_path: Path) -> bool:
+    """Tier 3: Fetches royalty-free photographic images from Wikimedia Commons."""
+    try:
+        clean_q = query.replace("overview", "").replace("concept", "").strip()
+        search_terms = f"{clean_q} filetype:bitmap"
+        api_url = f"https://commons.wikimedia.org/w/api.php?action=query&generator=search&gsrsearch={urllib.parse.quote(search_terms)}&gsrnamespace=6&prop=imageinfo&iiprop=url&iiurlwidth=960&format=json&gsrlimit=5"
+        r = requests.get(api_url, headers={"User-Agent": "QoneqtReel/1.0 (social-video-pipeline)"}, timeout=15)
+        if r.status_code == 200:
+            pages = r.json().get("query", {}).get("pages", {})
+            for pid, page in pages.items():
+                infos = page.get("imageinfo", [])
+                if infos:
+                    # Prefer 960px thumbnail for speed & vertical quality, fallback to full url
+                    img_url = infos[0].get("thumburl") or infos[0].get("url", "")
+                    clean_ext = img_url.split("?")[0].lower()
+                    if clean_ext.endswith((".jpg", ".jpeg", ".png", ".webp")):
+                        img_resp = requests.get(img_url, headers={"User-Agent": "QoneqtReel/1.0"}, timeout=20)
+                        if img_resp.status_code == 200 and len(img_resp.content) > 10000:
+                            with open(output_path, "wb") as f:
+                                f.write(img_resp.content)
+                            with Image.open(output_path) as im:
+                                im = im.convert("RGB")
+                                fitted = resize_and_crop_center(im, TARGET_WIDTH, TARGET_HEIGHT)
+                                fitted.save(str(output_path), "JPEG", quality=92)
+                            logger.info(f"Wikimedia photographic asset retrieved: {output_path.name} (from '{clean_q}')")
+                            return True
+    except Exception as e:
+        logger.warning(f"Wikimedia search failed for '{query}': {e}")
     return False
 
 
@@ -136,6 +192,10 @@ def fetch_pexels_image(query: str, output_path: Path) -> bool:
                 if img_resp.status_code == 200:
                     with open(output_path, "wb") as f:
                         f.write(img_resp.content)
+                    with Image.open(output_path) as im:
+                        im = im.convert("RGB")
+                        fitted = resize_and_crop_center(im, TARGET_WIDTH, TARGET_HEIGHT)
+                        fitted.save(str(output_path), "JPEG", quality=92)
                     logger.info(f"Pexels stock image fetched: {output_path.name}")
                     return True
     except Exception as e:
@@ -153,18 +213,26 @@ def get_scene_visual(
 ) -> Tuple[Path, str]:
     """
     Fallback ladder for visual generation:
-    Pollinations -> Pexels -> Pillow Gradient Card
+    1. Pollinations AI (Sana model)
+    2. Pexels Stock Photography (if key available)
+    3. Wikimedia Commons High-Res Photography
+    4. Pillow Gradient Card (Guaranteed Offline)
     Returns (Path, source_tier)
     """
-    # Tier 1: Pollinations
+    # Tier 1: Pollinations Sana AI
     if fetch_pollinations_image(visual_prompt, output_path, seed=seed):
-        return output_path, "pollinations"
+        return output_path, "pollinations_ai"
 
-    # Tier 2: Pexels
+    # Tier 2: Pexels API
     if stock_query and fetch_pexels_image(stock_query, output_path):
         return output_path, "pexels"
 
-    # Tier 3: Pillow Card (Guaranteed)
+    # Tier 3: Wikimedia Commons Real Photography
+    search_q = stock_query or caption_text
+    if search_q and fetch_wikimedia_image(search_q, output_path):
+        return output_path, "wikimedia_photo"
+
+    # Tier 4: Pillow Card (Guaranteed)
     logger.info(f"Falling back to Pillow gradient card for Scene {scene_id}")
     generate_pillow_text_card(caption_text, output_path, scene_id=scene_id)
     return output_path, "pillow_card"
