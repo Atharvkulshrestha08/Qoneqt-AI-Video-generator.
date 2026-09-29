@@ -1,0 +1,838 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QoneqtReel Engine | AI Video Studio for Qoneqt Feed</title>
+  <meta name="description" content="Autonomous LLM-powered vertical video pipeline for Qoneqt social feed with closed-loop critic and safety guardrails.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #090d16;
+      --surface: #111827;
+      --surface-elevated: #1f293d;
+      --border: #2e3b52;
+      --primary: #6366f1;
+      --primary-hover: #4f46e5;
+      --accent: #06b6d4;
+      --accent-glow: rgba(6, 182, 212, 0.15);
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --text: #f3f4f6;
+      --text-muted: #94a3b8;
+      --radius: 12px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+    }
+
+    header {
+      border-bottom: 1px solid var(--border);
+      background: rgba(17, 24, 39, 0.8);
+      backdrop-filter: blur(12px);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      padding: 16px 32px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .logo-badge {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 20px;
+      box-shadow: 0 0 20px rgba(99, 102, 241, 0.4);
+    }
+
+    .brand-title {
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+    }
+
+    .brand-subtitle {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .status-pill {
+      font-size: 12px;
+      padding: 6px 14px;
+      border-radius: 20px;
+      background: rgba(16, 185, 129, 0.1);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      color: var(--success);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--success);
+      box-shadow: 0 0 10px var(--success);
+    }
+
+    main {
+      flex: 1;
+      max-width: 1300px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 32px;
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      gap: 32px;
+    }
+
+    @media (max-width: 1024px) {
+      main {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+    }
+
+    .tabs {
+      display: flex;
+      gap: 8px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 16px;
+      margin-bottom: 24px;
+    }
+
+    .tab-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-weight: 600;
+      font-size: 14px;
+      padding: 8px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .tab-btn:hover {
+      color: var(--text);
+      background: var(--surface-elevated);
+    }
+
+    .tab-btn.active {
+      color: #fff;
+      background: var(--primary);
+    }
+
+    .tab-pane {
+      display: none;
+    }
+
+    .tab-pane.active {
+      display: block;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    input[type="text"], textarea, select {
+      width: 100%;
+      background: var(--surface-elevated);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px 16px;
+      color: var(--text);
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    input[type="text"]:focus, textarea:focus, select:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+    }
+
+    .btn {
+      background: linear-gradient(135deg, var(--primary), var(--primary-hover));
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 12px 24px;
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      justify-content: center;
+    }
+
+    .btn:hover {
+      opacity: 0.95;
+      transform: translateY(-1px);
+    }
+
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .btn-secondary {
+      background: var(--surface-elevated);
+      border: 1px solid var(--border);
+      color: var(--text);
+    }
+
+    .btn-secondary:hover {
+      background: #2a374f;
+    }
+
+    .sample-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .chip {
+      background: var(--surface-elevated);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 4px 12px;
+      font-size: 12px;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .chip:hover {
+      color: var(--accent);
+      border-color: var(--accent);
+    }
+
+    /* Live Progress Stage Stepper */
+    .progress-box {
+      margin-top: 24px;
+      background: rgba(17, 24, 39, 0.6);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+    }
+
+    .stepper {
+      display: flex;
+      justify-content: space-between;
+      position: relative;
+      margin-bottom: 20px;
+    }
+
+    .stepper::before {
+      content: "";
+      position: absolute;
+      top: 14px;
+      left: 20px;
+      right: 20px;
+      height: 2px;
+      background: var(--border);
+      z-index: 1;
+    }
+
+    .step-item {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .step-circle {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: var(--surface);
+      border: 2px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-muted);
+    }
+
+    .step-item.active .step-circle {
+      border-color: var(--accent);
+      color: var(--accent);
+      box-shadow: 0 0 12px var(--accent);
+    }
+
+    .step-item.done .step-circle {
+      background: var(--success);
+      border-color: var(--success);
+      color: #fff;
+    }
+
+    .step-label {
+      font-size: 11px;
+      color: var(--text-muted);
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
+    .terminal {
+      background: #06090e;
+      border: 1px solid #1a2333;
+      border-radius: 8px;
+      padding: 14px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      color: #38bdf8;
+      max-height: 180px;
+      overflow-y: auto;
+      line-height: 1.6;
+    }
+
+    /* Video Preview & Publish Side */
+    .preview-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .video-frame {
+      width: 270px;
+      height: 480px;
+      background: #000;
+      border-radius: 20px;
+      border: 3px solid #2e3b52;
+      overflow: hidden;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .empty-state-text {
+      color: var(--text-muted);
+      text-align: center;
+      padding: 24px;
+      font-size: 13px;
+    }
+
+    .meta-box {
+      width: 100%;
+      margin-top: 20px;
+      background: var(--surface-elevated);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px;
+    }
+
+    .meta-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .meta-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--accent);
+    }
+
+    .copy-btn {
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      color: var(--text-muted);
+      padding: 4px 8px;
+      font-size: 11px;
+      cursor: pointer;
+    }
+
+    .copy-btn:hover {
+      color: #fff;
+      border-color: var(--primary);
+    }
+
+    .meta-content {
+      font-size: 13px;
+      color: #e2e8f0;
+      white-space: pre-wrap;
+      line-height: 1.5;
+    }
+
+    .badge-pill {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 4px;
+      background: rgba(99, 102, 241, 0.2);
+      color: #a5b4fc;
+      font-size: 11px;
+      margin-right: 6px;
+      margin-top: 6px;
+    }
+
+    .alert {
+      padding: 12px 16px;
+      border-radius: 8px;
+      font-size: 13px;
+      margin-bottom: 16px;
+      display: none;
+    }
+
+    .alert-danger {
+      background: rgba(239, 68, 68, 0.15);
+      border: 1px solid rgba(239, 68, 68, 0.4);
+      color: #fca5a5;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="brand">
+      <div class="logo-badge">⚡</div>
+      <div>
+        <div class="brand-title">QoneqtReel Engine</div>
+        <div class="brand-subtitle">Autonomous Vertical Video Studio • 720x1280 • 9:16</div>
+      </div>
+    </div>
+    <div class="status-pill" id="health-badge">
+      <div class="status-dot"></div>
+      <span id="health-text">Pipeline Online</span>
+    </div>
+  </header>
+
+  <main>
+    <!-- Left Column: Controls & Pipeline State -->
+    <div>
+      <div class="card">
+        <div class="tabs">
+          <button class="tab-btn active" onclick="switchTab('single')" id="tab-single-btn">Single Reel</button>
+          <button class="tab-btn" onclick="switchTab('batch')" id="tab-batch-btn">Batch Runner</button>
+          <button class="tab-btn" onclick="switchTab('trend')" id="tab-trend-btn">Trend Expander</button>
+          <button class="tab-btn" onclick="switchTab('history')" id="tab-history-btn">History</button>
+        </div>
+
+        <!-- Single Tab -->
+        <div id="tab-single" class="tab-pane active">
+          <div class="alert alert-danger" id="single-alert"></div>
+          
+          <div class="form-group">
+            <label for="topic-input">Topic or Idea</label>
+            <input type="text" id="topic-input" placeholder="e.g. Why do we get goosebumps?" value="The story of how chai became India's favourite drink">
+            <div class="sample-chips">
+              <span class="chip" onclick="setTopic('Why do we get goosebumps?')">Why do we get goosebumps?</span>
+              <span class="chip" onclick="setTopic('3 free tools every student should know')">3 free student tools</span>
+              <span class="chip" onclick="setTopic('How UPI made payments simple')">How UPI changed India</span>
+              <span class="chip" onclick="setTopic('Morning routine tips for better focus')">Morning routine focus</span>
+              <span class="chip" style="color: #f87171; border-color: rgba(239,68,68,0.4);" onclick="setTopic('Make a video mocking a specific religion')">🚨 Test Adversarial Block</span>
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+            <div class="form-group">
+              <label for="style-select">Video Style</label>
+              <select id="style-select">
+                <option value="energetic explainer">Energetic Explainer</option>
+                <option value="curiosity curiosity">Curiosity & Mystery</option>
+                <option value="educational breakdown">Educational Deep Dive</option>
+                <option value="lifestyle motivator">Lifestyle & Focus</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="trend-input">Trend Context (Optional)</label>
+              <input type="text" id="trend-input" placeholder="e.g. #LearnOnQoneqt">
+            </div>
+          </div>
+
+          <button class="btn" id="generate-btn" onclick="startSingleJob()" style="width: 100%;">
+            <span>🚀 Generate 30s Vertical Reel</span>
+          </button>
+        </div>
+
+        <!-- Batch Tab -->
+        <div id="tab-batch" class="tab-pane">
+          <div class="form-group">
+            <label for="batch-textarea">List of Topics (one per line)</label>
+            <textarea id="batch-textarea" rows="6" placeholder="Topic 1&#10;Topic 2&#10;Topic 3">Why do we get goosebumps?
+3 free tools every student should know
+How UPI made payments simple</textarea>
+          </div>
+          <button class="btn" id="batch-btn" onclick="startBatchJob()" style="width: 100%;">
+            <span>⚡ Start Batch Processing</span>
+          </button>
+        </div>
+
+        <!-- Trend Expander Tab -->
+        <div id="tab-trend" class="tab-pane">
+          <div class="form-group">
+            <label for="trend-keyword-input">Trending Keyword or Theme</label>
+            <input type="text" id="trend-keyword-input" placeholder="e.g. Artificial Intelligence, Electric Vehicles, Cricket">
+          </div>
+          <button class="btn btn-secondary" onclick="expandTrendKeyword()" style="width: 100%; margin-bottom: 16px;">
+            <span>✨ Expand into 3 Angles</span>
+          </button>
+          <div id="trend-angles-output"></div>
+        </div>
+
+        <!-- History Tab -->
+        <div id="tab-history" class="tab-pane">
+          <div id="history-list" style="display: flex; flex-direction: column; gap: 12px;"></div>
+        </div>
+
+        <!-- Live Progress Stepper & Logs -->
+        <div class="progress-box" id="progress-box">
+          <div class="stepper">
+            <div class="step-item" id="step-mod">
+              <div class="step-circle">1</div>
+              <div class="step-label">Safety</div>
+            </div>
+            <div class="step-item" id="step-script">
+              <div class="step-circle">2</div>
+              <div class="step-label">Script</div>
+            </div>
+            <div class="step-item" id="step-assets">
+              <div class="step-circle">3</div>
+              <div class="step-label">Assets</div>
+            </div>
+            <div class="step-item" id="step-compose">
+              <div class="step-circle">4</div>
+              <div class="step-label">Compose</div>
+            </div>
+            <div class="step-item" id="step-done">
+              <div class="step-circle">5</div>
+              <div class="step-label">Export</div>
+            </div>
+          </div>
+          <div class="terminal" id="terminal-logs">
+            [00:00:00] Studio ready. Enter a topic to start pipeline.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Column: Video Preview & Post Ready Card -->
+    <div>
+      <div class="card preview-container">
+        <h3 style="font-size: 14px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 16px; letter-spacing: 0.5px;">
+          Feed Preview (9:16 vertical)
+        </h3>
+        <div class="video-frame" id="video-frame">
+          <video id="player" controls playsinline></video>
+          <div class="empty-state-text" id="empty-state">
+            🎬 Ready for render<br><span style="font-size: 11px; opacity: 0.7;">Your finished 720x1280 MP4 will play here</span>
+          </div>
+        </div>
+
+        <div style="margin-top: 16px; display: flex; gap: 12px; width: 100%; max-width: 270px;">
+          <a class="btn" id="download-btn" href="#" download style="flex: 1; display: none; text-decoration: none;">
+            ⬇️ Download MP4
+          </a>
+        </div>
+
+        <div class="meta-box" id="meta-box" style="display: none;">
+          <div class="meta-header">
+            <div class="meta-title">Qoneqt Post Details</div>
+            <button class="copy-btn" onclick="copyCaption()">Copy</button>
+          </div>
+          <div class="meta-content" id="post-caption-text"></div>
+          <div style="margin-top: 10px;">
+            <span class="badge-pill" id="badge-network">Network: General</span>
+            <span class="badge-pill" id="badge-score">Quality: 8.4/10</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    let activeJobId = null;
+    let pollInterval = null;
+
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+      document.getElementById(`tab-${tabId}-btn`).classList.add('active');
+      document.getElementById(`tab-${tabId}`).classList.add('active');
+      if (tabId === 'history') loadHistory();
+    }
+
+    function setTopic(text) {
+      document.getElementById('topic-input').value = text;
+    }
+
+    async function startSingleJob() {
+      const topic = document.getElementById('topic-input').value.trim();
+      const style = document.getElementById('style-select').value;
+      const trend = document.getElementById('trend-input').value.trim();
+      const alertBox = document.getElementById('single-alert');
+      alertBox.style.display = 'none';
+
+      if (!topic) return;
+
+      document.getElementById('generate-btn').disabled = true;
+      resetStepper();
+      logToTerminal(`Submitting job for topic: "${topic}"...`);
+
+      try {
+        const resp = await fetch('/api/jobs', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({topic, style, trend})
+        });
+        const data = await resp.json();
+        activeJobId = data.job_id;
+        logToTerminal(`Job registered: ${activeJobId}. Pipeline active.`);
+        startPolling(activeJobId);
+      } catch (err) {
+        logToTerminal(`Error launching job: ${err}`);
+        document.getElementById('generate-btn').disabled = false;
+      }
+    }
+
+    async function startBatchJob() {
+      const text = document.getElementById('batch-textarea').value.trim();
+      if (!text) return;
+      const topics = text.split('\n').map(t => t.trim()).filter(Boolean);
+      logToTerminal(`Submitting batch of ${topics.length} topics...`);
+
+      try {
+        const resp = await fetch('/api/batch', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({topics})
+        });
+        const data = await resp.json();
+        logToTerminal(`Batch queued (${data.count} jobs). First job: ${data.job_ids[0]}`);
+        activeJobId = data.job_ids[0];
+        startPolling(activeJobId);
+      } catch (err) {
+        logToTerminal(`Batch submission failed: ${err}`);
+      }
+    }
+
+    function startPolling(jobId) {
+      if (pollInterval) clearInterval(pollInterval);
+      pollInterval = setInterval(async () => {
+        try {
+          const resp = await fetch(`/api/jobs/${jobId}`);
+          if (!resp.ok) return;
+          const job = await resp.json();
+          updateUI(job);
+        } catch (e) {
+          console.error(e);
+        }
+      }, 1500);
+    }
+
+    function updateUI(job) {
+      updateStepper(job.stage, job.status);
+
+      if (job.logs && job.logs.length > 0) {
+        const term = document.getElementById('terminal-logs');
+        term.innerHTML = job.logs.map(l => `<div>${l}</div>`).join('');
+        term.scrollTop = term.scrollHeight;
+      }
+
+      if (job.status === 'blocked') {
+        clearInterval(pollInterval);
+        document.getElementById('generate-btn').disabled = false;
+        const alertBox = document.getElementById('single-alert');
+        alertBox.innerText = `🛡️ Guardrail Blocked: ${job.error_message || 'Violated platform guidelines'}`;
+        alertBox.style.display = 'block';
+      }
+
+      if (job.status === 'passed') {
+        clearInterval(pollInterval);
+        document.getElementById('generate-btn').disabled = false;
+        
+        // Show video
+        const player = document.getElementById('player');
+        const empty = document.getElementById('empty-state');
+        const downloadBtn = document.getElementById('download-btn');
+        
+        player.src = `/api/jobs/${job.job_id}/video`;
+        player.style.display = 'block';
+        empty.style.display = 'none';
+        
+        downloadBtn.href = `/api/jobs/${job.job_id}/video`;
+        downloadBtn.style.display = 'inline-flex';
+
+        // Show metadata
+        const metaBox = document.getElementById('meta-box');
+        const captionText = document.getElementById('post-caption-text');
+        captionText.innerText = `${job.caption}\n\n${(job.hashtags || []).join(' ')}`;
+        document.getElementById('badge-network').innerText = `Network: ${job.suggested_network || 'General'}`;
+        const score = job.scores ? job.scores.overall : 8.4;
+        document.getElementById('badge-score').innerText = `Score: ${score}/10`;
+        metaBox.style.display = 'block';
+      }
+    }
+
+    function updateStepper(stage, status) {
+      const stages = ['moderating', 'scripting', 'visuals_and_audio', 'composing', 'passed'];
+      const map = {
+        'moderating': 'step-mod',
+        'scripting': 'step-script',
+        'script_check': 'step-script',
+        'visuals_and_audio': 'step-assets',
+        'composing': 'step-compose',
+        'passed': 'step-done'
+      };
+
+      const stepOrder = ['step-mod', 'step-script', 'step-assets', 'step-compose', 'step-done'];
+      const activeStepId = map[stage] || 'step-mod';
+      const activeIdx = stepOrder.indexOf(activeStepId);
+
+      stepOrder.forEach((id, idx) => {
+        const el = document.getElementById(id);
+        el.classList.remove('active', 'done');
+        if (status === 'passed') {
+          el.classList.add('done');
+        } else if (idx < activeIdx) {
+          el.classList.add('done');
+        } else if (idx === activeIdx) {
+          el.classList.add('active');
+        }
+      });
+    }
+
+    function resetStepper() {
+      ['step-mod', 'step-script', 'step-assets', 'step-compose', 'step-done'].forEach(id => {
+        document.getElementById(id).classList.remove('active', 'done');
+      });
+    }
+
+    function logToTerminal(msg) {
+      const term = document.getElementById('terminal-logs');
+      const time = new Date().toTimeString().split(' ')[0];
+      term.innerHTML += `<div>[${time}] ${msg}</div>`;
+      term.scrollTop = term.scrollHeight;
+    }
+
+    function copyCaption() {
+      const text = document.getElementById('post-caption-text').innerText;
+      navigator.clipboard.writeText(text);
+      alert('Caption and hashtags copied to clipboard!');
+    }
+
+    async function expandTrendKeyword() {
+      const trend = document.getElementById('trend-keyword-input').value.trim();
+      if (!trend) return;
+      const out = document.getElementById('trend-angles-output');
+      out.innerHTML = '<div style="color:var(--text-muted); font-size:13px;">Analyzing trend angles...</div>';
+
+      try {
+        const resp = await fetch('/api/trend/expand', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({trend})
+        });
+        const data = await resp.json();
+        const angles = data.angles || [];
+        out.innerHTML = angles.map(a => `
+          <div style="background:var(--surface-elevated); border:1px solid var(--border); border-radius:8px; padding:12px; margin-bottom:8px;">
+            <div style="font-weight:600; font-size:13px; color:#fff;">${a.topic}</div>
+            <div style="font-size:12px; color:var(--text-muted); margin:4px 0;">Why it works: ${a.why_it_works}</div>
+            <button class="chip" onclick="setTopic('${a.topic.replace(/'/g, "\\'")}'); switchTab('single');">Use this topic ➔</button>
+          </div>
+        `).join('');
+      } catch (e) {
+        out.innerHTML = `<div style="color:var(--danger)">Failed to expand trend: ${e}</div>`;
+      }
+    }
+
+    async function loadHistory() {
+      const list = document.getElementById('history-list');
+      list.innerHTML = '<div style="color:var(--text-muted); font-size:13px;">Loading history...</div>';
+      try {
+        const resp = await fetch('/api/jobs');
+        const jobs = await resp.json();
+        if (jobs.length === 0) {
+          list.innerHTML = '<div style="color:var(--text-muted); font-size:13px;">No jobs recorded yet.</div>';
+          return;
+        }
+        list.innerHTML = jobs.map(j => `
+          <div style="background:var(--surface-elevated); border:1px solid var(--border); border-radius:8px; padding:12px; display:flex; justify-content:space-between; align-items:center;">
+            <div>
+              <div style="font-weight:600; font-size:13px;">${j.topic}</div>
+              <div style="font-size:11px; color:var(--text-muted);">${j.job_id} • ${j.stage}</div>
+            </div>
+            <div style="display:flex; align-items:center; gap:8px;">
+              <span class="badge-pill" style="margin:0;">${j.status.toUpperCase()}</span>
+              ${j.status === 'passed' ? `<a href="/api/jobs/${j.job_id}/video" target="_blank" class="chip">Watch</a>` : ''}
+            </div>
+          </div>
+        `).join('');
+      } catch (e) {
+        list.innerHTML = `<div style="color:var(--danger)">Failed to load history: ${e}</div>`;
+      }
+    }
+
+    // Health check on load
+    fetch('/api/health').then(r => r.json()).then(d => {
+      document.getElementById('health-text').innerText = `Engine Online (${d.llm_provider})`;
+    }).catch(() => {
+      document.getElementById('health-text').innerText = 'Offline';
+    });
+  </script>
+</body>
+</html>
