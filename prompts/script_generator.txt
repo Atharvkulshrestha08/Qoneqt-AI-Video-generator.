@@ -16,7 +16,7 @@ CRITICAL RULES — violations = automatic reject:
 - NARRATION must be SPECIFIC to the topic. Use real facts, real mechanisms, real impacts.
   Do NOT use phrases like "researchers discovered" or "experts now say" without specifics.
   Do NOT use generic connector phrases between scenes.
-- Total narration across all 5 scenes: 65-80 words (≈28-30 seconds spoken).
+- Total narration across all 5 scenes: 65-80 words (approx 28-30 seconds spoken).
 - Exactly 5 scenes. Each scene duration_sec: 5-7 seconds. Durations must sum to 28-32.
 - Each scene covers ONE specific angle of the topic — no repetition.
 - Scene 5 must end with a call-to-action ("Follow for more / Comment below / Tag a friend").
@@ -28,20 +28,20 @@ CRITICAL RULES — violations = automatic reject:
 - For health/finance/news: stay factual and general, add disclaimer in post_caption.
 
 OUTPUT: ONLY valid JSON matching this schema, no markdown fences, no extra text:
-{
+{{
   "title": "string (<= 60 chars, specific to topic)",
   "hook": "string (1-2 sentences, specific surprising fact or bold question about THIS topic)",
   "scenes": [
-    {
+    {{
       "id": 1,
       "duration_sec": 6,
       "narration": "string (specific fact about topic, NOT generic)",
       "caption_text": "string (max 7 words, punchy)",
       "visual_prompt": "string (specific, cinematic, vertical, concrete description)",
       "stock_query": "2-3 word fallback image search term"
-    }
+    }}
   ],
   "post_caption": "string (<= 200 chars, ends with: 'AI-generated video.')",
   "hashtags": ["#tag1", "#tag2", "#tag3", "#tag4", "#tag5"],
   "suggested_network": "one of: Viral, India, News, Food, General, Tech, Education"
-}
+}}

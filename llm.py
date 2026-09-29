@@ -85,21 +85,77 @@ class TrendAnglesResult(BaseModel):
 
 # --- Helper: Extract & Parse JSON ---
 
-def clean_and_parse_json(text: str) -> Dict[str, Any]:
-    """Strips markdown code blocks and extracts raw JSON dictionary."""
-    text = text.strip()
-    # Remove markdown code block fences if present
-    match = re.search(r"```(?:json)?\s*(\{[\s\S]*?\})\s*```", text, re.IGNORECASE)
-    if match:
-        text = match.group(1)
-    else:
-        # Try to find first { and last }
-        first_brace = text.find("{")
-        last_brace = text.rfind("}")
-        if first_brace != -1 and last_brace != -1 and last_brace > first_brace:
-            text = text[first_brace : last_brace + 1]
+def _repair_json_string(text: str) -> str:
+    """
+    Repairs common LLM JSON output issues:
+    - Smart/curly quotes to straight quotes
+    - Unicode replacement chars / NUL bytes
+    - Trailing commas before } or ]
+    """
+    replacements = [
+        ("\u2019", "'"),   # right single quotation mark
+        ("\u2018", "'"),   # left single quotation mark
+        ("\u201c", '"'),   # left double quotation mark
+        ("\u201d", '"'),   # right double quotation mark
+        ("\u2013", "-"),   # en dash
+        ("\u2014", "-"),   # em dash
+        ("\ufffd", "'"),   # Unicode replacement character (garbled encoding)
+        ("\x00",  ""),     # NUL byte
+    ]
+    for bad, good in replacements:
+        text = text.replace(bad, good)
+    # Remove trailing commas before closing braces/brackets
+    text = re.sub(r",\s*([}\]])", r"\1", text)
+    return text
 
-    return json.loads(text)
+
+def clean_and_parse_json(text: str) -> Dict[str, Any]:
+    """Robustly extracts and parses JSON from LLM output, repairing common issues."""
+    text = text.strip()
+
+    # Strip markdown fences if present
+    match = re.search(r"```(?:json)?\s*([\s\S]*?)\s*```", text, re.IGNORECASE)
+    if match:
+        text = match.group(1).strip()
+
+    # Extract the outermost JSON object
+    first_brace = text.find("{")
+    last_brace = text.rfind("}")
+    if first_brace != -1 and last_brace != -1 and last_brace > first_brace:
+        text = text[first_brace : last_brace + 1]
+
+    # Always repair smart quotes / unicode issues first
+    text = _repair_json_string(text)
+
+    # Attempt 1: standard json.loads (fast path)
+    try:
+        return json.loads(text)
+    except json.JSONDecodeError:
+        pass
+
+    # Attempt 2: json-repair library (handles missing commas, truncation, etc.)
+    try:
+        from json_repair import repair_json
+        repaired = repair_json(text, return_objects=True)
+        if isinstance(repaired, dict):
+            return repaired
+        # repair_json may return a string if it fixed it to a string
+        if isinstance(repaired, str):
+            return json.loads(repaired)
+    except Exception:
+        pass
+
+    # Attempt 3: force ASCII encoding then parse
+    try:
+        ascii_text = text.encode("ascii", errors="replace").decode("ascii")
+        ascii_text = re.sub(r"\?(?=[a-z])", "'", ascii_text)  # ?s -> 's, ?t -> 't etc.
+        return json.loads(ascii_text)
+    except json.JSONDecodeError as e:
+        raise ValueError(
+            f"Could not parse JSON from LLM response after all repair attempts.\n"
+            f"Error: {e}\nRaw (first 400 chars): {text[:400]}"
+        )
+
 
 
 # --- Template Emergency Fallback (PRD Section 5: last resort) ---
@@ -472,23 +528,36 @@ class LLMService:
         self.groq_key = os.getenv("GROQ_API_KEY", "").strip()
 
     def _call_gemini(self, prompt: str) -> str:
-        import google.generativeai as genai
+        from google import genai
+        from google.genai import types
 
         if not self.gemini_key:
             raise ValueError("GEMINI_API_KEY not configured")
 
-        genai.configure(api_key=self.gemini_key)
-        # Try latest models in priority order
-        model_names = ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash", "gemini-1.5-pro"]
+        client = genai.Client(api_key=self.gemini_key)
+
+        # Models ordered by actual free-tier availability (gemini-3-flash-preview is proven working)
+        model_names = [
+            "gemini-3-flash-preview",      # Reliably available on this key
+            "gemini-flash-lite-latest",    # Fast lightweight fallback
+            "gemini-3.1-flash-lite-preview",
+            "gemini-3.8-flash",            # High demand — try last
+            "gemini-flash-latest",
+        ]
         last_err = None
         for m_name in model_names:
             try:
-                model = genai.GenerativeModel(m_name)
-                response = model.generate_content(
-                    prompt,
-                    generation_config={"temperature": 0.7, "max_output_tokens": 2000},
+                response = client.models.generate_content(
+                    model=m_name,
+                    contents=prompt,
+                    config=types.GenerateContentConfig(
+                        temperature=0.7,
+                        max_output_tokens=3000,
+                        response_mime_type="application/json",
+                    ),
                 )
                 if response and response.text:
+                    logger.info(f"Gemini model {m_name} responded OK")
                     return response.text
             except Exception as e:
                 last_err = e
