@@ -2,6 +2,7 @@ import datetime
 import json
 import logging
 import os
+import random
 import time
 import uuid
 from pathlib import Path
@@ -153,13 +154,16 @@ class JobRunner:
 
             # Visual ladder
             raw_img_path = self.job_dir / f"scene_{idx}_raw.jpg"
+            # Use a unique random seed per scene per job for visual variety
+            scene_seed = random.randint(1, 999999)
             chosen_img, tier = get_scene_visual(
                 visual_prompt=sc.visual_prompt,
                 stock_query=sc.stock_query,
                 caption_text=sc.caption_text,
                 output_path=raw_img_path,
                 scene_id=idx,
-                seed=42 + idx * 7,
+                seed=scene_seed,
+                topic=self.job.topic,
             )
 
             # Frame with Safe Zone Captions & AI Badge

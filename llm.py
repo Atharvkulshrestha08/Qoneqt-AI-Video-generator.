@@ -315,55 +315,151 @@ def generate_emergency_script(topic: str) -> ScriptPlan:
             suggested_network="Education",
         )
 
-    # Dynamic Analytical Script for other topics
+    # --- Smart dynamic fallback for ANY topic ---
+    # Build topic-specific content by analyzing keywords
+    words = clean_topic.split()
+    topic_short = " ".join(words[:4]) if len(words) > 4 else clean_topic
+
+    # Derive contextual angles from topic keywords
+    is_science = any(k in lower for k in ["science", "body", "brain", "cell", "dna", "planet", "space", "atom", "quantum", "virus", "gene"])
+    is_history = any(k in lower for k in ["history", "ancient", "war", "empire", "king", "queen", "century", "origin", "story", "discover"])
+    is_food    = any(k in lower for k in ["food", "eat", "cook", "recipe", "taste", "flavor", "spice", "dish", "cuisine"])
+    is_tech    = any(k in lower for k in ["app", "software", "code", "ai", "robot", "internet", "data", "cloud", "tech", "digital", "computer"])
+    is_health  = any(k in lower for k in ["health", "sleep", "diet", "exercise", "habit", "stress", "mental", "mind", "weight", "fitness"])
+    is_money   = any(k in lower for k in ["money", "invest", "rich", "wealth", "stock", "crypto", "budget", "save", "earn", "income"])
+    is_career  = any(k in lower for k in ["career", "job", "work", "skill", "success", "productivity", "business", "startup", "leader"])
+    is_nature  = any(k in lower for k in ["animal", "bird", "ocean", "forest", "tree", "nature", "wild", "earth", "climate", "environment"])
+
+    if is_science:
+        angle = "scientific discovery"
+        scene2_narration = f"Scientists studying {topic_short} discovered something that changed our understanding entirely."
+        scene2_visual = f"Microscopic scientific visualization related to {topic_short}, glowing neon lab equipment, dramatic macro photography"
+        scene3_narration = f"At the molecular level, {topic_short} operates through a mechanism most of us never learn in school."
+        scene3_visual = f"3D cinematic render of biological or molecular process representing {topic_short}, ultra-detailed"
+        scene4_narration = f"Understanding {topic_short} reshapes how we see our own bodies and the natural world around us."
+        scene4_visual = f"Stunning conceptual science art depicting {topic_short} in vibrant colors, vertical 9:16 composition"
+        hashtags = ["#ScienceFacts", "#MindBlown", "#DidYouKnow", "#LearnOnQoneqt", "#ScienceBreakdown"]
+        network = "Education"
+    elif is_history:
+        angle = "historical revelation"
+        scene2_narration = f"The true origin of {topic_short} dates back further than most history books are willing to admit."
+        scene2_visual = f"Ancient historical scene depicting {topic_short}, cinematic sepia toned dramatic lighting, vertical"
+        scene3_narration = f"At its peak, {topic_short} shaped the lives of millions — its influence still echoes today."
+        scene3_visual = f"Epic historical illustration of {topic_short}, sweeping vertical cinematic composition"
+        scene4_narration = f"The legacy of {topic_short} quietly lives on in our language, culture, and everyday habits."
+        scene4_visual = f"Modern world with subtle historical echoes of {topic_short}, split-tone cinematic photography"
+        hashtags = ["#History", "#DidYouKnow", "#CultureFacts", "#LearnOnQoneqt", "#TrueStory"]
+        network = "India"
+    elif is_food:
+        angle = "food story"
+        scene2_narration = f"The journey of {topic_short} from raw ingredient to your plate is more fascinating than you think."
+        scene2_visual = f"Beautiful close-up of {topic_short} being prepared in traditional Indian kitchen, warm cinematic"
+        scene3_narration = f"Every region in India has its own spin on {topic_short}, shaped by local spices and culture."
+        scene3_visual = f"Colorful regional variations of {topic_short} displayed artfully, top-down food photography 9:16"
+        scene4_narration = f"The nutritional power of {topic_short} has made it a staple across generations of Indian families."
+        scene4_visual = f"Nutritional concept visualization with {topic_short} ingredients glowing with health energy"
+        hashtags = ["#FoodLovers", "#IndianFood", "#FoodFacts", "#LearnOnQoneqt", "#TasteOfIndia"]
+        network = "Food"
+    elif is_tech:
+        angle = "tech explainer"
+        scene2_narration = f"The engineers who built {topic_short} solved problems that seemed completely impossible five years ago."
+        scene2_visual = f"Futuristic tech interface and code streams related to {topic_short}, neon cyberpunk aesthetic vertical"
+        scene3_narration = f"Today {topic_short} powers millions of devices and decisions without most people even noticing."
+        scene3_visual = f"Network of glowing data nodes and devices powered by {topic_short}, vertical 9:16 digital art"
+        scene4_narration = f"In the next decade, {topic_short} will reshape industries we thought were immune to disruption."
+        scene4_visual = f"Futuristic city skyline transformed by {topic_short} technology, cinematic sci-fi vertical"
+        hashtags = ["#TechFacts", "#Innovation", "#FutureTech", "#LearnOnQoneqt", "#TechBreakdown"]
+        network = "Tech"
+    elif is_health:
+        angle = "health insight"
+        scene2_narration = f"Most people misunderstand {topic_short} — what you have been told may actually be working against you."
+        scene2_visual = f"Human body wellness visualization related to {topic_short}, clean medical cinematic photography"
+        scene3_narration = f"Research now shows that small, consistent changes around {topic_short} create outsized results."
+        scene3_visual = f"Healthy lifestyle concept imagery representing {topic_short}, natural light vertical photography"
+        scene4_narration = f"Making {topic_short} a daily habit is one of the highest-return investments in your long-term health."
+        scene4_visual = f"Person thriving with healthy energy inspired by {topic_short}, golden hour portrait vertical"
+        hashtags = ["#HealthTips", "#WellnessLife", "#HealthFacts", "#LearnOnQoneqt", "#MindBodySoul"]
+        network = "General"
+    elif is_money:
+        angle = "financial insight"
+        scene2_narration = f"Most people approach {topic_short} backwards — and that single mistake costs them years of wealth."
+        scene2_visual = f"Sophisticated financial concept art representing {topic_short}, sleek minimal 9:16 vertical"
+        scene3_narration = f"The compounding effect of understanding {topic_short} early separates the wealthy from everyone else."
+        scene3_visual = f"Abstract wealth growth visualization with {topic_short} theme, glowing upward graph cinematic"
+        scene4_narration = f"This is general information and not financial advice. Always consult a certified professional."
+        scene4_visual = f"Professional financial planning desk with documents and charts, cinematic vertical portrait"
+        hashtags = ["#MoneyTips", "#FinancialFreedom", "#WealthBuilding", "#LearnOnQoneqt", "#MoneyMindset"]
+        network = "General"
+    elif is_nature:
+        angle = "nature wonder"
+        scene2_narration = f"The survival strategy of {topic_short} in the wild is more sophisticated than any human technology."
+        scene2_visual = f"Stunning wildlife or nature photography of {topic_short} in natural habitat, vertical cinematic"
+        scene3_narration = f"Scientists have spent decades trying to fully understand how {topic_short} interacts with its ecosystem."
+        scene3_visual = f"Ecosystem visualization with {topic_short} at center, vibrant nature documentary style vertical"
+        scene4_narration = f"Climate change is putting {topic_short} under pressures our planet has never seen before."
+        scene4_visual = f"Dramatic nature scene contrasting beauty and threat related to {topic_short}, cinematic vertical"
+        hashtags = ["#NatureFacts", "#WildlifeWonder", "#EcoAwareness", "#LearnOnQoneqt", "#PlanetEarth"]
+        network = "General"
+    else:
+        # Generic but still topic-injected for career/other topics
+        angle = "insight"
+        scene2_narration = f"What most people miss about {topic_short} is that the real impact happens below the surface."
+        scene2_visual = f"Conceptual artistic visualization representing {topic_short}, dramatic cinematic vertical composition"
+        scene3_narration = f"Once you see {topic_short} through this lens, you will start noticing it in places you never expected."
+        scene3_visual = f"Insightful revelation concept art inspired by {topic_short}, glowing discovery aesthetic vertical"
+        scene4_narration = f"The people who truly understand {topic_short} use it as an advantage that others simply overlook."
+        scene4_visual = f"Success and insight concept photography with {topic_short} theme, professional cinematic vertical"
+        hashtags = ["#DeepDive", "#DailyInsight", "#LearnSomethingNew", "#LearnOnQoneqt", "#KnowledgeIsPower"]
+        network = "General"
+
     return ScriptPlan(
-        title=f"The Hidden Truth Behind {clean_topic[:35]}",
-        hook=f"What is the one thing everyone gets wrong about {clean_topic[:30]}?",
+        title=f"The Real Truth About {topic_short}",
+        hook=f"Here is the one thing about {topic_short} that almost nobody talks about.",
         scenes=[
             ScenePlan(
                 id=1,
                 duration_sec=6,
-                narration=f"When people talk about {clean_topic}, they almost always look at the wrong angle.",
-                caption_text=f"The truth about {clean_topic[:20]}",
-                visual_prompt=f"Cinematic atmospheric visualization representing {clean_topic}, dramatic lighting, vertical composition, 8k",
-                stock_query=f"{clean_topic[:20]} concept",
+                narration=f"Everyone has heard of {clean_topic} — but almost nobody understands what actually makes it so remarkable.",
+                caption_text=f"What makes {topic_short[:18]} special?",
+                visual_prompt=f"Cinematic dramatic opener shot representing the concept of {clean_topic}, high contrast vertical 9:16, award-winning photography",
+                stock_query=f"{topic_short[:20]}",
             ),
             ScenePlan(
                 id=2,
                 duration_sec=6,
-                narration="The real breakthrough began when researchers looked past the surface to examine the core mechanism.",
-                caption_text="The underlying mechanism",
-                visual_prompt="Scientific analysis breakdown with glowing holographic diagrams and data streams, vertical framing",
-                stock_query="science research discovery",
+                narration=scene2_narration,
+                caption_text=f"The hidden {angle}",
+                visual_prompt=scene2_visual,
+                stock_query=f"{' '.join(words[:3])} {angle}",
             ),
             ScenePlan(
                 id=3,
                 duration_sec=6,
-                narration="Once you understand how the primary components interact, the entire mystery starts falling into place.",
-                caption_text="Connecting the puzzle",
-                visual_prompt="Mechanical gears and glowing energy circuits aligning into complete harmony, cinematic macro shot",
-                stock_query="innovation technology concept",
+                narration=scene3_narration,
+                caption_text=f"{topic_short[:18]} up close",
+                visual_prompt=scene3_visual,
+                stock_query=f"{' '.join(words[:3])} detail",
             ),
             ScenePlan(
                 id=4,
                 duration_sec=6,
-                narration="That is why modern experts now approach this problem with a completely fresh, data-driven perspective.",
-                caption_text="The new perspective",
-                visual_prompt="Futuristic telescope or microscope lens revealing vibrant colorful new dimension, 8k vertical",
-                stock_query="future perspective vision",
+                narration=scene4_narration,
+                caption_text=f"Why {topic_short[:16]} matters",
+                visual_prompt=scene4_visual,
+                stock_query=f"{' '.join(words[:3])} impact",
             ),
             ScenePlan(
                 id=5,
                 duration_sec=6,
-                narration="Did you know this before? Share your thoughts below and follow for more daily breakdowns!",
-                caption_text="What do you think?",
-                visual_prompt="Engaging community discussion silhouette with glowing connectivity icons, vertical composition",
-                stock_query="community ideas conversation",
+                narration=f"Did this change how you see {topic_short}? Drop your thoughts below and follow for more daily breakdowns!",
+                caption_text="Share your thoughts!",
+                visual_prompt=f"Vibrant social community conversation energy with glowing icons and chat bubbles, modern vertical design",
+                stock_query="community conversation sharing",
             ),
         ],
-        post_caption=f"Uncovering the real story behind {clean_topic}! Follow for daily insights. AI-generated video.",
-        hashtags=["#DeepDive", "#Knowledge", "#Trending", "#LearnOnQoneqt", "#DailyInsights"],
-        suggested_network="Tech",
+        post_caption=f"The real {angle} behind {clean_topic}! Follow for daily insights. AI-generated video.",
+        hashtags=hashtags,
+        suggested_network=network,
     )
 
 
@@ -382,15 +478,15 @@ class LLMService:
             raise ValueError("GEMINI_API_KEY not configured")
 
         genai.configure(api_key=self.gemini_key)
-        # Try latest flash models in priority order
-        model_names = ["gemini-2.0-flash", "gemini-1.5-flash", "gemini-1.5-pro"]
+        # Try latest models in priority order
+        model_names = ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash", "gemini-1.5-pro"]
         last_err = None
         for m_name in model_names:
             try:
                 model = genai.GenerativeModel(m_name)
                 response = model.generate_content(
                     prompt,
-                    generation_config={"temperature": 0.3, "max_output_tokens": 1500},
+                    generation_config={"temperature": 0.7, "max_output_tokens": 2000},
                 )
                 if response and response.text:
                     return response.text
