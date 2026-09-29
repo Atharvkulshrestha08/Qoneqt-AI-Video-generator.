@@ -11,19 +11,23 @@
   <style>
     :root {
       --bg: #090d16;
+      --bg-subtle: #0d1322;
       --surface: #111827;
-      --surface-elevated: #1f293d;
-      --border: #2e3b52;
-      --primary: #6366f1;
-      --primary-hover: #4f46e5;
-      --accent: #06b6d4;
-      --accent-glow: rgba(6, 182, 212, 0.15);
+      --surface-elevated: #1a2234;
+      --border: rgba(255, 255, 255, 0.1);
+      --border-strong: rgba(255, 255, 255, 0.18);
+      --primary: #F97C00;
+      --primary-hover: #e06c00;
+      --primary-glow: rgba(249, 124, 0, 0.28);
+      --accent: #6366f1;
       --success: #10b981;
-      --warning: #f59e0b;
       --danger: #ef4444;
-      --text: #f3f4f6;
+      --text: #ffffff;
       --text-muted: #94a3b8;
-      --radius: 12px;
+      --text-subtle: #64748b;
+      --radius-sm: 8px;
+      --radius-md: 14px;
+      --radius-lg: 24px;
     }
 
     * {
@@ -37,127 +41,432 @@
       background-color: var(--bg);
       color: var(--text);
       min-height: 100vh;
-      display: flex;
-      flex-direction: column;
       overflow-x: hidden;
+      line-height: 1.5;
     }
 
-    header {
+    /* Pattern Strip Divider */
+    .pattern-divider {
+      width: 100%;
+      height: 28px;
+      border-top: 1px solid var(--border);
       border-bottom: 1px solid var(--border);
-      background: rgba(17, 24, 39, 0.8);
-      backdrop-filter: blur(12px);
+      background-image: repeating-linear-gradient(315deg, rgba(255, 255, 255, 0.08) 0, rgba(255, 255, 255, 0.08) 1px, transparent 0, transparent 50%);
+      background-size: 10px 10px;
+    }
+
+    /* Header */
+    header {
       position: sticky;
       top: 0;
       z-index: 100;
-      padding: 16px 32px;
+      background: rgba(9, 13, 22, 0.85);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+      padding: 16px 36px;
       display: flex;
       justify-content: space-between;
       align-items: center;
     }
 
-    .brand {
+    .brand-wrap {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      color: #fff;
+    }
+
+    .brand-icon {
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #F97C00, #ff5500);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      font-weight: 800;
+      box-shadow: 0 4px 20px var(--primary-glow);
+    }
+
+    .brand-text {
+      font-size: 19px;
+      font-weight: 800;
+      letter-spacing: -0.6px;
+    }
+
+    .brand-sub {
+      font-size: 11px;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    nav.nav-links {
+      display: flex;
+      align-items: center;
+      gap: 28px;
+    }
+
+    nav.nav-links a {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 600;
+      transition: color 0.2s;
+    }
+
+    nav.nav-links a:hover {
+      color: #fff;
+    }
+
+    .header-actions {
       display: flex;
       align-items: center;
       gap: 12px;
     }
 
-    .logo-badge {
-      width: 40px;
-      height: 40px;
-      border-radius: 10px;
-      background: linear-gradient(135deg, var(--primary), var(--accent));
-      display: flex;
+    .btn {
+      padding: 10px 20px;
+      border-radius: var(--radius-sm);
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
       align-items: center;
       justify-content: center;
-      font-weight: 800;
-      font-size: 20px;
-      box-shadow: 0 0 20px rgba(99, 102, 241, 0.4);
+      gap: 8px;
+      transition: all 0.2s;
+      border: none;
     }
 
-    .brand-title {
-      font-size: 18px;
-      font-weight: 700;
-      letter-spacing: -0.5px;
+    .btn-primary {
+      background: var(--primary);
+      color: #fff;
+      box-shadow: 0 4px 16px var(--primary-glow);
     }
 
-    .brand-subtitle {
-      font-size: 12px;
-      color: var(--text-muted);
+    .btn-primary:hover {
+      background: var(--primary-hover);
+      transform: translateY(-1px);
     }
 
-    .status-pill {
-      font-size: 12px;
-      padding: 6px 14px;
-      border-radius: 20px;
-      background: rgba(16, 185, 129, 0.1);
-      border: 1px solid rgba(16, 185, 129, 0.3);
-      color: var(--success);
+    .btn-outline {
+      background: transparent;
+      color: #fff;
+      border: 1px solid var(--border-strong);
+    }
+
+    .btn-outline:hover {
+      background: rgba(255, 255, 255, 0.06);
+    }
+
+    /* Hero Section with Vibrant Gradient */
+    .hero-section {
+      position: relative;
+      padding: 60px 20px 40px;
       display: flex;
+      flex-direction: column;
+      align-items: center;
+      overflow: hidden;
+    }
+
+    .hero-gradient-backdrop {
+      position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100vw;
+      height: 100%;
+      z-index: -1;
+      background: linear-gradient(180deg, rgba(9,13,22,1) 0%, rgba(249, 124, 0, 0.28) 45%, rgba(9,13,22,1) 100%);
+      pointer-events: none;
+    }
+
+    .pill-badge {
+      display: inline-flex;
       align-items: center;
       gap: 8px;
+      padding: 6px 14px;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      backdrop-filter: blur(8px);
+      border-radius: 30px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #fff;
+      margin-bottom: 24px;
+      cursor: pointer;
+      transition: all 0.2s;
     }
 
-    .status-dot {
-      width: 8px;
-      height: 8px;
+    .pill-badge:hover {
+      background: rgba(255, 255, 255, 0.14);
+      transform: scale(1.02);
+    }
+
+    .pill-badge-tag {
+      background: #F97C00;
+      color: #fff;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .hero-title {
+      font-size: clamp(2.4rem, 5.5vw, 4.2rem);
+      font-weight: 800;
+      line-height: 1.08;
+      letter-spacing: -1.5px;
+      text-align: center;
+      max-width: 900px;
+      margin-bottom: 20px;
+      color: #ffffff;
+      text-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+    }
+
+    .hero-title span {
+      background: linear-gradient(135deg, #ffffff 40%, #F97C00 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .hero-subtitle {
+      font-size: clamp(1rem, 2vw, 1.25rem);
+      color: rgba(255, 255, 255, 0.85);
+      text-align: center;
+      max-width: 680px;
+      margin-bottom: 36px;
+      font-weight: 400;
+    }
+
+    .hero-cta-group {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 50px;
+    }
+
+    /* 3-Phone Presentation Mockup */
+    .mockup-stage {
+      position: relative;
+      width: 100%;
+      max-width: 1100px;
+      min-height: 580px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-top: 10px;
+    }
+
+    .phone-container {
+      position: absolute;
+      transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    /* Side Phones */
+    .phone-left {
+      left: calc(50% - 370px);
+      width: 250px;
+      transform: translateY(25px) scale(0.88) rotate(-7deg);
+      opacity: 0.85;
+      z-index: 10;
+      filter: blur(0.5px);
+    }
+
+    .phone-right {
+      right: calc(50% - 370px);
+      width: 250px;
+      transform: translateY(25px) scale(0.88) rotate(7deg);
+      opacity: 0.85;
+      z-index: 10;
+      filter: blur(0.5px);
+    }
+
+    /* Center Hero Phone */
+    .phone-center {
+      position: relative;
+      width: 320px;
+      z-index: 25;
+      box-shadow: 0 30px 80px rgba(0, 0, 0, 0.85), 0 0 40px var(--primary-glow);
+      border-radius: 46px;
+    }
+
+    @media (max-width: 900px) {
+      .phone-left, .phone-right { display: none; }
+      .phone-center { width: 300px; }
+    }
+
+    .phone-body {
+      background: #000;
+      border: 11px solid #1f2937;
+      border-radius: 46px;
+      overflow: hidden;
+      aspect-ratio: 9 / 19.5;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .phone-notch {
+      position: absolute;
+      top: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 90px;
+      height: 22px;
+      background: #000;
+      border-radius: 20px;
+      z-index: 50;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 10px;
+    }
+
+    .phone-lens {
+      width: 10px;
+      height: 10px;
       border-radius: 50%;
-      background: var(--success);
-      box-shadow: 0 0 10px var(--success);
+      background: #111;
+      border: 1px solid #222;
     }
 
-    main {
-      flex: 1;
+    .phone-screen-content {
+      width: 100%;
+      height: 100%;
+      background: #0b0f19;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .preview-video-element {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .mockup-overlay-meta {
+      position: absolute;
+      bottom: 16px;
+      left: 14px;
+      right: 14px;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 12px;
+      padding: 10px 12px;
+      font-size: 11px;
+      color: #fff;
+      z-index: 30;
+    }
+
+    /* Social Proof / Stats Strip */
+    .metrics-section {
+      width: 100%;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 40px 20px;
+    }
+
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 20px;
+      border: 1px solid var(--border);
+      background: rgba(17, 24, 39, 0.6);
+      backdrop-filter: blur(12px);
+      border-radius: var(--radius-md);
+      padding: 24px;
+    }
+
+    .metric-card {
+      text-align: center;
+      padding: 12px;
+    }
+
+    .metric-val {
+      font-size: 32px;
+      font-weight: 800;
+      color: #fff;
+      letter-spacing: -1px;
+      margin-bottom: 4px;
+    }
+
+    .metric-val.highlight {
+      color: var(--primary);
+    }
+
+    .metric-label {
+      font-size: 13px;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    /* Main Interactive App Area */
+    .studio-container {
       max-width: 1300px;
       width: 100%;
-      margin: 0 auto;
-      padding: 32px;
+      margin: 40px auto 60px;
+      padding: 0 24px;
       display: grid;
       grid-template-columns: 1.15fr 0.85fr;
       gap: 32px;
     }
 
-    @media (max-width: 1024px) {
-      main {
+    @media (max-width: 1000px) {
+      .studio-container {
         grid-template-columns: 1fr;
       }
     }
 
-    .card {
+    .studio-card {
       background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 24px;
-      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+      border-radius: var(--radius-lg);
+      padding: 32px;
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
     }
 
-    .tabs {
+    .card-title {
+      font-size: 22px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .card-desc {
+      font-size: 14px;
+      color: var(--text-muted);
+      margin-bottom: 24px;
+    }
+
+    /* Tabs */
+    .tabs-nav {
       display: flex;
       gap: 8px;
       border-bottom: 1px solid var(--border);
       padding-bottom: 16px;
-      margin-bottom: 24px;
+      margin-bottom: 28px;
     }
 
-    .tab-btn {
+    .tab-trigger {
       background: transparent;
       border: none;
       color: var(--text-muted);
       font-weight: 600;
       font-size: 14px;
-      padding: 8px 16px;
-      border-radius: 8px;
+      padding: 8px 18px;
+      border-radius: var(--radius-sm);
       cursor: pointer;
-      transition: all 0.2s ease;
+      transition: all 0.2s;
     }
 
-    .tab-btn:hover {
-      color: var(--text);
-      background: var(--surface-elevated);
-    }
-
-    .tab-btn.active {
-      color: #fff;
+    .tab-trigger.active {
       background: var(--primary);
+      color: #fff;
     }
 
     .tab-pane {
@@ -169,468 +478,688 @@
     }
 
     .form-group {
-      margin-bottom: 20px;
+      margin-bottom: 22px;
     }
 
     label {
       display: block;
-      font-size: 13px;
-      font-weight: 600;
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
       color: var(--text-muted);
       margin-bottom: 8px;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
     }
 
     input[type="text"], textarea, select {
       width: 100%;
       background: var(--surface-elevated);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 12px 16px;
-      color: var(--text);
-      font-size: 14px;
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-sm);
+      padding: 14px 18px;
+      color: #fff;
+      font-size: 15px;
       outline: none;
-      transition: border-color 0.2s;
+      transition: border-color 0.2s, box-shadow 0.2s;
     }
 
     input[type="text"]:focus, textarea:focus, select:focus {
       border-color: var(--primary);
-      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+      box-shadow: 0 0 0 3px var(--primary-glow);
     }
 
-    .btn {
-      background: linear-gradient(135deg, var(--primary), var(--primary-hover));
-      color: #fff;
-      border: none;
-      border-radius: 8px;
-      padding: 12px 24px;
-      font-weight: 600;
-      font-size: 14px;
-      cursor: pointer;
-      transition: all 0.2s;
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      justify-content: center;
-    }
-
-    .btn:hover {
-      opacity: 0.95;
-      transform: translateY(-1px);
-    }
-
-    .btn:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-
-    .btn-secondary {
-      background: var(--surface-elevated);
-      border: 1px solid var(--border);
-      color: var(--text);
-    }
-
-    .btn-secondary:hover {
-      background: #2a374f;
-    }
-
-    .sample-chips {
+    .chips-group {
       display: flex;
       flex-wrap: wrap;
       gap: 8px;
       margin-top: 10px;
     }
 
-    .chip {
-      background: var(--surface-elevated);
+    .chip-item {
+      background: rgba(255, 255, 255, 0.05);
       border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 4px 12px;
+      border-radius: 20px;
+      padding: 5px 14px;
       font-size: 12px;
       color: var(--text-muted);
       cursor: pointer;
       transition: all 0.2s;
     }
 
-    .chip:hover {
-      color: var(--accent);
-      border-color: var(--accent);
+    .chip-item:hover {
+      background: rgba(249, 124, 0, 0.15);
+      border-color: var(--primary);
+      color: #fff;
     }
 
-    /* Live Progress Stage Stepper */
-    .progress-box {
-      margin-top: 24px;
-      background: rgba(17, 24, 39, 0.6);
+    .chip-danger {
+      color: #f87171 !important;
+      border-color: rgba(239, 68, 68, 0.4) !important;
+    }
+
+    .chip-danger:hover {
+      background: rgba(239, 68, 68, 0.15) !important;
+    }
+
+    /* Live Pipeline Stepper */
+    .stepper-container {
+      margin-top: 28px;
+      background: rgba(0, 0, 0, 0.4);
       border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 20px;
+      border-radius: var(--radius-md);
+      padding: 24px;
     }
 
-    .stepper {
+    .stepper-track {
       display: flex;
       justify-content: space-between;
       position: relative;
       margin-bottom: 20px;
     }
 
-    .stepper::before {
+    .stepper-track::before {
       content: "";
       position: absolute;
-      top: 14px;
-      left: 20px;
-      right: 20px;
+      top: 16px;
+      left: 30px;
+      right: 30px;
       height: 2px;
       background: var(--border);
       z-index: 1;
     }
 
-    .step-item {
+    .step-node {
       position: relative;
       z-index: 2;
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 6px;
+      gap: 8px;
     }
 
-    .step-circle {
-      width: 30px;
-      height: 30px;
+    .node-icon {
+      width: 34px;
+      height: 34px;
       border-radius: 50%;
       background: var(--surface);
-      border: 2px solid var(--border);
+      border: 2px solid var(--border-strong);
       display: flex;
       align-items: center;
       justify-content: center;
       font-size: 12px;
-      font-weight: 700;
+      font-weight: 800;
       color: var(--text-muted);
+      transition: all 0.2s;
     }
 
-    .step-item.active .step-circle {
-      border-color: var(--accent);
-      color: var(--accent);
-      box-shadow: 0 0 12px var(--accent);
+    .step-node.active .node-icon {
+      border-color: var(--primary);
+      color: var(--primary);
+      box-shadow: 0 0 14px var(--primary);
     }
 
-    .step-item.done .step-circle {
+    .step-node.done .node-icon {
       background: var(--success);
       border-color: var(--success);
       color: #fff;
     }
 
-    .step-label {
+    .node-title {
       font-size: 11px;
-      color: var(--text-muted);
-      font-weight: 600;
+      font-weight: 700;
       text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-muted);
     }
 
-    .terminal {
-      background: #06090e;
-      border: 1px solid #1a2333;
-      border-radius: 8px;
-      padding: 14px;
+    .terminal-window {
+      background: #05080f;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 14px 18px;
       font-family: 'JetBrains Mono', monospace;
       font-size: 12px;
       color: #38bdf8;
-      max-height: 180px;
+      max-height: 160px;
       overflow-y: auto;
       line-height: 1.6;
     }
 
-    /* Video Preview & Publish Side */
-    .preview-container {
+    /* Right Preview Column */
+    .studio-preview {
       display: flex;
       flex-direction: column;
       align-items: center;
     }
 
-    .video-frame {
-      width: 270px;
-      height: 480px;
+    .preview-box {
+      width: 290px;
+      height: 515px;
       background: #000;
-      border-radius: 20px;
-      border: 3px solid #2e3b52;
+      border-radius: 32px;
+      border: 4px solid #1e293b;
       overflow: hidden;
-      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7);
       position: relative;
       display: flex;
       align-items: center;
       justify-content: center;
     }
 
-    video {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
-
-    .empty-state-text {
-      color: var(--text-muted);
+    .preview-placeholder {
       text-align: center;
-      padding: 24px;
+      padding: 30px;
+      color: var(--text-muted);
       font-size: 13px;
     }
 
-    .meta-box {
+    .publish-card {
       width: 100%;
-      margin-top: 20px;
       background: var(--surface-elevated);
       border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 16px;
+      border-radius: var(--radius-md);
+      padding: 20px;
+      margin-top: 24px;
     }
 
-    .meta-header {
+    .publish-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 8px;
+      margin-bottom: 12px;
     }
 
-    .meta-title {
-      font-size: 13px;
+    .publish-title {
+      font-size: 14px;
       font-weight: 700;
-      color: var(--accent);
+      color: var(--primary);
     }
 
-    .copy-btn {
-      background: transparent;
-      border: 1px solid var(--border);
-      border-radius: 4px;
-      color: var(--text-muted);
-      padding: 4px 8px;
-      font-size: 11px;
-      cursor: pointer;
-    }
-
-    .copy-btn:hover {
-      color: #fff;
-      border-color: var(--primary);
-    }
-
-    .meta-content {
+    .publish-text {
       font-size: 13px;
       color: #e2e8f0;
       white-space: pre-wrap;
       line-height: 1.5;
     }
 
-    .badge-pill {
+    .tag-bubble {
       display: inline-block;
-      padding: 3px 8px;
-      border-radius: 4px;
-      background: rgba(99, 102, 241, 0.2);
-      color: #a5b4fc;
-      font-size: 11px;
+      padding: 4px 10px;
+      border-radius: 6px;
+      background: rgba(249, 124, 0, 0.15);
+      color: #fb923c;
+      font-size: 12px;
+      font-weight: 600;
       margin-right: 6px;
-      margin-top: 6px;
+      margin-top: 8px;
     }
 
-    .alert {
-      padding: 12px 16px;
-      border-radius: 8px;
+    /* 3 Pillars Feature Section */
+    .features-section {
+      max-width: 1200px;
+      margin: 80px auto;
+      padding: 0 24px;
+    }
+
+    .section-title {
+      text-align: center;
+      font-size: clamp(2rem, 3.5vw, 2.8rem);
+      font-weight: 800;
+      letter-spacing: -0.8px;
+      margin-bottom: 12px;
+    }
+
+    .section-subtitle {
+      text-align: center;
+      font-size: 16px;
+      color: var(--text-muted);
+      max-width: 600px;
+      margin: 0 auto 50px;
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 28px;
+    }
+
+    .feature-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 36px 30px;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      transition: transform 0.2s, border-color 0.2s;
+    }
+
+    .feature-card:hover {
+      transform: translateY(-4px);
+      border-color: var(--border-strong);
+    }
+
+    .feature-card.highlight {
+      border-color: var(--primary);
+      box-shadow: 0 8px 30px rgba(249, 124, 0, 0.12);
+    }
+
+    .feature-icon-pill {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      background: rgba(249, 124, 0, 0.15);
+      color: var(--primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      margin-bottom: 20px;
+    }
+
+    .feature-name {
+      font-size: 21px;
+      font-weight: 700;
+      margin-bottom: 12px;
+      letter-spacing: -0.4px;
+    }
+
+    .feature-text {
+      font-size: 14px;
+      color: var(--text-muted);
+      line-height: 1.6;
+      margin-bottom: 20px;
+    }
+
+    /* Footer */
+    footer {
+      border-top: 1px solid var(--border);
+      background: #05080f;
+      padding: 60px 36px;
+      margin-top: 100px;
+    }
+
+    .footer-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 24px;
+    }
+
+    .footer-note {
       font-size: 13px;
-      margin-bottom: 16px;
-      display: none;
-    }
-
-    .alert-danger {
-      background: rgba(239, 68, 68, 0.15);
-      border: 1px solid rgba(239, 68, 68, 0.4);
-      color: #fca5a5;
+      color: var(--text-subtle);
     }
   </style>
 </head>
 <body>
 
+  <!-- Header -->
   <header>
-    <div class="brand">
-      <div class="logo-badge">⚡</div>
+    <a href="#" class="brand-wrap">
+      <div class="brand-icon">⚡</div>
       <div>
-        <div class="brand-title">QoneqtReel Engine</div>
-        <div class="brand-subtitle">Autonomous Vertical Video Studio • 720x1280 • 9:16</div>
+        <div class="brand-text">QoneqtReel</div>
+        <div class="brand-sub">Autonomous AI Video Studio</div>
       </div>
-    </div>
-    <div class="status-pill" id="health-badge">
-      <div class="status-dot"></div>
-      <span id="health-text">Pipeline Online</span>
+    </a>
+    <nav class="nav-links">
+      <a href="#studio">Studio</a>
+      <a href="#batch">Batch Runner</a>
+      <a href="#features">Architecture</a>
+      <a href="#guardrails">Guardrails</a>
+    </nav>
+    <div class="header-actions">
+      <a href="#batch" class="btn btn-outline">Batch Runner</a>
+      <a href="#studio" class="btn btn-primary">Create Reel</a>
     </div>
   </header>
 
-  <main>
-    <!-- Left Column: Controls & Pipeline State -->
+  <!-- Hero Section -->
+  <section class="hero-section">
+    <div class="hero-gradient-backdrop"></div>
+    
+    <div class="pill-badge" onclick="document.getElementById('studio').scrollIntoView({behavior: 'smooth'})">
+      <span class="pill-badge-tag">HACKATHON</span>
+      <span>Qoneqt x CTRL FREAK • Self-Looping Engine →</span>
+    </div>
+
+    <h1 class="hero-title">
+      Make Any Reel<br/><span>You Can Imagine</span>
+    </h1>
+
+    <p class="hero-subtitle">
+      Turn topics, prompts, or trends into ready-to-publish 30-second vertical videos for the Qoneqt Global Feed with closed-loop critic, AI voiceover, and full safety guardrails.
+    </p>
+
+    <div class="hero-cta-group">
+      <button class="btn btn-primary" onclick="document.getElementById('studio').scrollIntoView({behavior: 'smooth'})">
+        🚀 Launch Studio
+      </button>
+      <button class="btn btn-outline" onclick="playHeroDemo()">
+        🎬 Watch Demo
+      </button>
+    </div>
+
+    <!-- 3-Phone Presentation Mockup -->
+    <div class="mockup-stage">
+      <!-- Left Phone: Sample Reel 1 -->
+      <div class="phone-container phone-left">
+        <div class="phone-body">
+          <div class="phone-notch"><div class="phone-lens"></div></div>
+          <div class="phone-screen-content">
+            <img src="/static/sample1.jpg" onerror="this.src='https://images.unsplash.com/photo-1544787219-7f47ccb76574?w=600&auto=format&fit=crop&q=80'" style="width:100%; height:100%; object-fit:cover;" alt="Story of Chai">
+            <div class="mockup-overlay-meta">
+              <div style="font-weight:700; font-size:12px;">The Story of Chai ☕</div>
+              <div style="font-size:10px; color:#cbd5e1;">How it conquered Indian streets</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Center Hero Phone: Live Interactive Player -->
+      <div class="phone-container phone-center">
+        <div class="phone-body">
+          <div class="phone-notch"><div class="phone-lens"></div></div>
+          <div class="phone-screen-content" id="hero-phone-content">
+            <video id="hero-player" class="preview-video-element" controls playsinline src="/api/jobs/job_1790709208_39d239/video"></video>
+            <div class="mockup-overlay-meta" id="hero-phone-meta">
+              <div style="font-weight:800; font-size:12px; color:#F97C00;">LIVE FEED REEL</div>
+              <div style="font-size:11px;" id="hero-phone-caption">Why do we get goosebumps? • 720x1280 vertical</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Phone: Sample Reel 2 -->
+      <div class="phone-container phone-right">
+        <div class="phone-body">
+          <div class="phone-notch"><div class="phone-lens"></div></div>
+          <div class="phone-screen-content">
+            <img src="/static/sample2.jpg" onerror="this.src='https://images.unsplash.com/photo-1556742049-0a67e557224d?w=600&auto=format&fit=crop&q=80'" style="width:100%; height:100%; object-fit:cover;" alt="UPI Payments">
+            <div class="mockup-overlay-meta">
+              <div style="font-weight:700; font-size:12px;">How UPI Works 📲</div>
+              <div style="font-size:10px; color:#cbd5e1;">The digital payment revolution</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Pattern Divider -->
+  <div class="pattern-divider"></div>
+
+  <!-- Metrics Strip -->
+  <section class="metrics-section">
+    <div class="metrics-grid">
+      <div class="metric-card">
+        <div class="metric-val highlight">100%</div>
+        <div class="metric-label">Autonomous Closed Loop</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-val">5</div>
+        <div class="metric-label">Mandatory Safety Guardrails</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-val highlight">&lt;4 min</div>
+        <div class="metric-label">Zero-Cost Pipeline Time</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-val">9:16</div>
+        <div class="metric-label">Vertical 720x1280 Reels</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Main Interactive Studio Section -->
+  <section id="studio" class="studio-container">
+    <!-- Left: Controls & Pipeline State -->
     <div>
-      <div class="card">
-        <div class="tabs">
-          <button class="tab-btn active" onclick="switchTab('single')" id="tab-single-btn">Single Reel</button>
-          <button class="tab-btn" onclick="switchTab('batch')" id="tab-batch-btn">Batch Runner</button>
-          <button class="tab-btn" onclick="switchTab('trend')" id="tab-trend-btn">Trend Expander</button>
-          <button class="tab-btn" onclick="switchTab('history')" id="tab-history-btn">History</button>
+      <div class="studio-card">
+        <div class="tabs-nav">
+          <button class="tab-trigger active" onclick="switchStudioTab('single')" id="btn-tab-single">Create Single Reel</button>
+          <button class="tab-trigger" onclick="switchStudioTab('batch')" id="btn-tab-batch">Batch Runner</button>
+          <button class="tab-trigger" onclick="switchStudioTab('trend')" id="btn-tab-trend">Trend Expander</button>
+          <button class="tab-trigger" onclick="switchStudioTab('history')" id="btn-tab-history">Job History</button>
         </div>
 
-        <!-- Single Tab -->
-        <div id="tab-single" class="tab-pane active">
-          <div class="alert alert-danger" id="single-alert"></div>
-          
+        <!-- Tab 1: Single Job -->
+        <div id="pane-single" class="tab-pane active">
           <div class="form-group">
-            <label for="topic-input">Topic or Idea</label>
-            <input type="text" id="topic-input" placeholder="e.g. Why do we get goosebumps?" value="The story of how chai became India's favourite drink">
-            <div class="sample-chips">
-              <span class="chip" onclick="setTopic('Why do we get goosebumps?')">Why do we get goosebumps?</span>
-              <span class="chip" onclick="setTopic('3 free tools every student should know')">3 free student tools</span>
-              <span class="chip" onclick="setTopic('How UPI made payments simple')">How UPI changed India</span>
-              <span class="chip" onclick="setTopic('Morning routine tips for better focus')">Morning routine focus</span>
-              <span class="chip" style="color: #f87171; border-color: rgba(239,68,68,0.4);" onclick="setTopic('Make a video mocking a specific religion')">🚨 Test Adversarial Block</span>
+            <label for="input-topic">Topic / Idea / Question</label>
+            <input type="text" id="input-topic" placeholder="e.g. The story of how chai became India's favourite drink" value="The story of how chai became India's favourite drink">
+            
+            <div class="chips-group">
+              <span class="chip-item" onclick="setTopicValue('Why do we get goosebumps?')">Why do we get goosebumps?</span>
+              <span class="chip-item" onclick="setTopicValue('3 free tools every student should know')">3 free student tools</span>
+              <span class="chip-item" onclick="setTopicValue('How UPI made payments simple')">How UPI made payments simple</span>
+              <span class="chip-item" onclick="setTopicValue('Morning routine tips for better focus')">Morning routine for focus</span>
+              <span class="chip-item chip-danger" onclick="setTopicValue('Make a video mocking a specific religion')">🚨 Test Adversarial Block</span>
             </div>
           </div>
 
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
             <div class="form-group">
-              <label for="style-select">Video Style</label>
-              <select id="style-select">
+              <label for="select-style">Video Tone & Style</label>
+              <select id="select-style">
                 <option value="energetic explainer">Energetic Explainer</option>
-                <option value="curiosity curiosity">Curiosity & Mystery</option>
+                <option value="curiosity mystery">Curiosity & Mystery</option>
                 <option value="educational breakdown">Educational Deep Dive</option>
-                <option value="lifestyle motivator">Lifestyle & Focus</option>
+                <option value="lifestyle focus">Lifestyle & Focus</option>
               </select>
             </div>
             <div class="form-group">
-              <label for="trend-input">Trend Context (Optional)</label>
-              <input type="text" id="trend-input" placeholder="e.g. #LearnOnQoneqt">
+              <label for="input-trend">Trend Context (Optional)</label>
+              <input type="text" id="input-trend" placeholder="e.g. #LearnOnQoneqt">
             </div>
           </div>
 
-          <button class="btn" id="generate-btn" onclick="startSingleJob()" style="width: 100%;">
+          <button class="btn btn-primary" id="btn-generate-reel" onclick="triggerSingleGeneration()" style="width: 100%; padding: 14px;">
             <span>🚀 Generate 30s Vertical Reel</span>
           </button>
         </div>
 
-        <!-- Batch Tab -->
-        <div id="tab-batch" class="tab-pane">
+        <!-- Tab 2: Batch Runner -->
+        <div id="pane-batch" class="tab-pane">
           <div class="form-group">
-            <label for="batch-textarea">List of Topics (one per line)</label>
-            <textarea id="batch-textarea" rows="6" placeholder="Topic 1&#10;Topic 2&#10;Topic 3">Why do we get goosebumps?
+            <label for="textarea-batch-topics">Topic Queue (one per line)</label>
+            <textarea id="textarea-batch-topics" rows="6">Why do we get goosebumps?
 3 free tools every student should know
-How UPI made payments simple</textarea>
+The story of how chai became India's favourite drink
+How UPI made payments simple
+Morning routine tips for better focus</textarea>
           </div>
-          <button class="btn" id="batch-btn" onclick="startBatchJob()" style="width: 100%;">
+          <button class="btn btn-primary" onclick="triggerBatchGeneration()" style="width: 100%; padding: 14px;">
             <span>⚡ Start Batch Processing</span>
           </button>
         </div>
 
-        <!-- Trend Expander Tab -->
-        <div id="tab-trend" class="tab-pane">
+        <!-- Tab 3: Trend Expander -->
+        <div id="pane-trend" class="tab-pane">
           <div class="form-group">
-            <label for="trend-keyword-input">Trending Keyword or Theme</label>
-            <input type="text" id="trend-keyword-input" placeholder="e.g. Artificial Intelligence, Electric Vehicles, Cricket">
+            <label for="input-trend-keyword">Trending Keyword or Theme</label>
+            <input type="text" id="input-trend-keyword" placeholder="e.g. Electric Vehicles, Artificial Intelligence, UPI 2.0">
           </div>
-          <button class="btn btn-secondary" onclick="expandTrendKeyword()" style="width: 100%; margin-bottom: 16px;">
-            <span>✨ Expand into 3 Angles</span>
+          <button class="btn btn-outline" onclick="triggerTrendExpansion()" style="width: 100%; margin-bottom: 20px;">
+            <span>✨ Propose 3 Viral Angles</span>
           </button>
-          <div id="trend-angles-output"></div>
+          <div id="trend-angles-container"></div>
         </div>
 
-        <!-- History Tab -->
-        <div id="tab-history" class="tab-pane">
-          <div id="history-list" style="display: flex; flex-direction: column; gap: 12px;"></div>
+        <!-- Tab 4: History -->
+        <div id="pane-history" class="tab-pane">
+          <div id="history-items-container" style="display: flex; flex-direction: column; gap: 12px;"></div>
         </div>
 
-        <!-- Live Progress Stepper & Logs -->
-        <div class="progress-box" id="progress-box">
-          <div class="stepper">
-            <div class="step-item" id="step-mod">
-              <div class="step-circle">1</div>
-              <div class="step-label">Safety</div>
+        <!-- Real-Time Pipeline Progress & Stage Stepper -->
+        <div class="stepper-container">
+          <div class="stepper-track">
+            <div class="step-node" id="node-mod">
+              <div class="node-icon">1</div>
+              <div class="node-title">Safety</div>
             </div>
-            <div class="step-item" id="step-script">
-              <div class="step-circle">2</div>
-              <div class="step-label">Script</div>
+            <div class="step-node" id="node-script">
+              <div class="node-icon">2</div>
+              <div class="node-title">Script</div>
             </div>
-            <div class="step-item" id="step-assets">
-              <div class="step-circle">3</div>
-              <div class="step-label">Assets</div>
+            <div class="step-node" id="node-assets">
+              <div class="node-icon">3</div>
+              <div class="node-title">Assets</div>
             </div>
-            <div class="step-item" id="step-compose">
-              <div class="step-circle">4</div>
-              <div class="step-label">Compose</div>
+            <div class="step-node" id="node-compose">
+              <div class="node-icon">4</div>
+              <div class="node-title">Compose</div>
             </div>
-            <div class="step-item" id="step-done">
-              <div class="step-circle">5</div>
-              <div class="step-label">Export</div>
+            <div class="step-node" id="node-export">
+              <div class="node-icon">5</div>
+              <div class="node-title">Export</div>
             </div>
           </div>
-          <div class="terminal" id="terminal-logs">
-            [00:00:00] Studio ready. Enter a topic to start pipeline.
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Right Column: Video Preview & Post Ready Card -->
-    <div>
-      <div class="card preview-container">
-        <h3 style="font-size: 14px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 16px; letter-spacing: 0.5px;">
-          Feed Preview (9:16 vertical)
-        </h3>
-        <div class="video-frame" id="video-frame">
-          <video id="player" controls playsinline></video>
-          <div class="empty-state-text" id="empty-state">
-            🎬 Ready for render<br><span style="font-size: 11px; opacity: 0.7;">Your finished 720x1280 MP4 will play here</span>
-          </div>
-        </div>
-
-        <div style="margin-top: 16px; display: flex; gap: 12px; width: 100%; max-width: 270px;">
-          <a class="btn" id="download-btn" href="#" download style="flex: 1; display: none; text-decoration: none;">
-            ⬇️ Download MP4
-          </a>
-        </div>
-
-        <div class="meta-box" id="meta-box" style="display: none;">
-          <div class="meta-header">
-            <div class="meta-title">Qoneqt Post Details</div>
-            <button class="copy-btn" onclick="copyCaption()">Copy</button>
-          </div>
-          <div class="meta-content" id="post-caption-text"></div>
-          <div style="margin-top: 10px;">
-            <span class="badge-pill" id="badge-network">Network: General</span>
-            <span class="badge-pill" id="badge-score">Quality: 8.4/10</span>
+          <div class="terminal-window" id="studio-terminal-logs">
+            [Ready] Pipeline initialized. Select or enter a topic above.
           </div>
         </div>
       </div>
     </div>
-  </main>
+
+    <!-- Right: Studio Preview & Post Metadata -->
+    <div class="studio-preview">
+      <div style="font-size: 13px; font-weight: 700; text-transform: uppercase; color: var(--text-muted); margin-bottom: 14px; letter-spacing: 0.8px;">
+        Qoneqt Vertical Feed Preview
+      </div>
+      <div class="preview-box">
+        <video id="studio-video-player" class="preview-video-element" controls playsinline style="display: none;"></video>
+        <div class="preview-placeholder" id="studio-placeholder">
+          <div style="font-size: 32px; margin-bottom: 10px;">🎬</div>
+          <div style="font-weight: 700; font-size: 15px; margin-bottom: 4px;">Ready for Render</div>
+          <div style="font-size: 12px; color: var(--text-subtle);">Your 720x1280 MP4 with burned captions and voiceover will play here</div>
+        </div>
+      </div>
+
+      <div style="width: 100%; max-width: 290px; margin-top: 14px;">
+        <a id="btn-download-mp4" class="btn btn-primary" href="#" download style="width: 100%; display: none;">
+          ⬇️ Download MP4
+        </a>
+      </div>
+
+      <div class="publish-card" id="publish-metadata-card" style="display: none;">
+        <div class="publish-header">
+          <div class="publish-title">Qoneqt Post Metadata</div>
+          <button class="btn btn-outline" style="padding: 4px 10px; font-size: 11px;" onclick="copyPostDetails()">Copy All</button>
+        </div>
+        <div class="publish-text" id="metadata-caption-content"></div>
+        <div style="margin-top: 10px;">
+          <span class="tag-bubble" id="badge-network-pill">Network: General</span>
+          <span class="tag-bubble" id="badge-score-pill">Critic Score: 8.5/10</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Pattern Divider -->
+  <div class="pattern-divider" id="features"></div>
+
+  <!-- Features Section (The 3 Pillars of QoneqtReel Engine) -->
+  <section class="features-section">
+    <h2 class="section-title">Everything You Need For<br/><span style="color: var(--primary);">Autonomous Feed Content</span></h2>
+    <p class="section-subtitle">A production-grade vertical pipeline engineered specifically for high reliability, zero-cost operations, and strict social safety standards.</p>
+
+    <div class="features-grid">
+      <!-- Pillar 1 -->
+      <div class="feature-card">
+        <div class="feature-icon-pill">🔄</div>
+        <h3 class="feature-name">Closed-Loop Critic Engine</h3>
+        <p class="feature-text">
+          A single generation is fragile. Our inner critic analyzes first-3-second scroll-stopping hooks, audio loudness, word cadence, and duration before approving export, targeting retries dynamically.
+        </p>
+        <span style="font-size: 12px; font-weight: 700; color: var(--primary);">MAX_ATTEMPTS=3 • Targeted Rewrites</span>
+      </div>
+
+      <!-- Pillar 2 -->
+      <div class="feature-card highlight">
+        <div class="feature-icon-pill">🛡️</div>
+        <h3 class="feature-name">5 Strict Safety Guardrails</h3>
+        <p class="feature-text">
+          Deterministic pre-filters and semantic review prevent dangerous weapons instructions, religious insults, fake celebrity death news, deepfakes, and copyright violations before generation starts.
+        </p>
+        <span style="font-size: 12px; font-weight: 700; color: var(--primary);">AI Watermark • Fact Disclaimers</span>
+      </div>
+
+      <!-- Pillar 3 -->
+      <div class="feature-card">
+        <div class="feature-icon-pill">⚡</div>
+        <h3 class="feature-name">100% Free-Tier Architecture</h3>
+        <p class="feature-text">
+          Built with an unbreakable multi-stage fallback ladder: Pollinations to Pexels to Pillow gradient cards; edge-tts to gTTS; original NumPy synthesised ambient pads with zero copyright risk.
+        </p>
+        <span style="font-size: 12px; font-weight: 700; color: var(--primary);">Zero External API Costs Required</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <div class="footer-inner">
+      <div class="brand-wrap">
+        <div class="brand-icon">⚡</div>
+        <div>
+          <div class="brand-text">QoneqtReel Engine</div>
+          <div class="brand-sub">Built for Qoneqt x CTRL FREAK Hackathon</div>
+        </div>
+      </div>
+      <div class="footer-note">
+        Output Spec: 720x1280 Vertical • 30fps • H.264 / AAC • Faststart
+      </div>
+    </div>
+  </footer>
 
   <script>
     let activeJobId = null;
-    let pollInterval = null;
+    let pollTimer = null;
 
-    function switchTab(tabId) {
-      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-      document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
-      document.getElementById(`tab-${tabId}-btn`).classList.add('active');
-      document.getElementById(`tab-${tabId}`).classList.add('active');
-      if (tabId === 'history') loadHistory();
+    function switchStudioTab(tab) {
+      ['single', 'batch', 'trend', 'history'].forEach(t => {
+        document.getElementById(`btn-tab-${t}`).classList.remove('active');
+        document.getElementById(`pane-${t}`).classList.remove('active');
+      });
+      document.getElementById(`btn-tab-${tab}`).classList.add('active');
+      document.getElementById(`pane-${tab}`).classList.add('active');
+      if (tab === 'history') fetchHistory();
     }
 
-    function setTopic(text) {
-      document.getElementById('topic-input').value = text;
+    function setTopicValue(val) {
+      document.getElementById('input-topic').value = val;
     }
 
-    async function startSingleJob() {
-      const topic = document.getElementById('topic-input').value.trim();
-      const style = document.getElementById('style-select').value;
-      const trend = document.getElementById('trend-input').value.trim();
-      const alertBox = document.getElementById('single-alert');
-      alertBox.style.display = 'none';
+    function logTerminal(msg) {
+      const term = document.getElementById('studio-terminal-logs');
+      const time = new Date().toTimeString().split(' ')[0];
+      term.innerHTML += `<div>[${time}] ${msg}</div>`;
+      term.scrollTop = term.scrollHeight;
+    }
+
+    function playHeroDemo() {
+      const heroVid = document.getElementById('hero-player');
+      if (heroVid) {
+        heroVid.scrollIntoView({behavior: 'smooth', block: 'center'});
+        heroVid.play();
+      }
+    }
+
+    async function triggerSingleGeneration() {
+      const topic = document.getElementById('input-topic').value.trim();
+      const style = document.getElementById('select-style').value;
+      const trend = document.getElementById('input-trend').value.trim();
 
       if (!topic) return;
 
-      document.getElementById('generate-btn').disabled = true;
-      resetStepper();
-      logToTerminal(`Submitting job for topic: "${topic}"...`);
+      document.getElementById('btn-generate-reel').disabled = true;
+      resetStepNodes();
+      logTerminal(`Submitting job for topic: "${topic}"...`);
 
       try {
         const resp = await fetch('/api/jobs', {
@@ -640,19 +1169,19 @@ How UPI made payments simple</textarea>
         });
         const data = await resp.json();
         activeJobId = data.job_id;
-        logToTerminal(`Job registered: ${activeJobId}. Pipeline active.`);
-        startPolling(activeJobId);
+        logTerminal(`Job registered: ${activeJobId}. Starting execution loop...`);
+        beginPollingJob(activeJobId);
       } catch (err) {
-        logToTerminal(`Error launching job: ${err}`);
-        document.getElementById('generate-btn').disabled = false;
+        logTerminal(`Error submitting job: ${err}`);
+        document.getElementById('btn-generate-reel').disabled = false;
       }
     }
 
-    async function startBatchJob() {
-      const text = document.getElementById('batch-textarea').value.trim();
+    async function triggerBatchGeneration() {
+      const text = document.getElementById('textarea-batch-topics').value.trim();
       if (!text) return;
       const topics = text.split('\n').map(t => t.trim()).filter(Boolean);
-      logToTerminal(`Submitting batch of ${topics.length} topics...`);
+      logTerminal(`Queuing batch of ${topics.length} topics...`);
 
       try {
         const resp = await fetch('/api/batch', {
@@ -661,124 +1190,116 @@ How UPI made payments simple</textarea>
           body: JSON.stringify({topics})
         });
         const data = await resp.json();
-        logToTerminal(`Batch queued (${data.count} jobs). First job: ${data.job_ids[0]}`);
-        activeJobId = data.job_ids[0];
-        startPolling(activeJobId);
+        logTerminal(`Batch running (${data.count} jobs). Polling initial job ${data.job_ids[0]}...`);
+        beginPollingJob(data.job_ids[0]);
       } catch (err) {
-        logToTerminal(`Batch submission failed: ${err}`);
+        logTerminal(`Batch launch failed: ${err}`);
       }
     }
 
-    function startPolling(jobId) {
-      if (pollInterval) clearInterval(pollInterval);
-      pollInterval = setInterval(async () => {
+    function beginPollingJob(jobId) {
+      if (pollTimer) clearInterval(pollTimer);
+      pollTimer = setInterval(async () => {
         try {
           const resp = await fetch(`/api/jobs/${jobId}`);
           if (!resp.ok) return;
           const job = await resp.json();
-          updateUI(job);
+          renderJobProgress(job);
         } catch (e) {
           console.error(e);
         }
       }, 1500);
     }
 
-    function updateUI(job) {
-      updateStepper(job.stage, job.status);
+    function renderJobProgress(job) {
+      updateStageNodes(job.stage, job.status);
 
       if (job.logs && job.logs.length > 0) {
-        const term = document.getElementById('terminal-logs');
+        const term = document.getElementById('studio-terminal-logs');
         term.innerHTML = job.logs.map(l => `<div>${l}</div>`).join('');
         term.scrollTop = term.scrollHeight;
       }
 
       if (job.status === 'blocked') {
-        clearInterval(pollInterval);
-        document.getElementById('generate-btn').disabled = false;
-        const alertBox = document.getElementById('single-alert');
-        alertBox.innerText = `🛡️ Guardrail Blocked: ${job.error_message || 'Violated platform guidelines'}`;
-        alertBox.style.display = 'block';
+        clearInterval(pollTimer);
+        document.getElementById('btn-generate-reel').disabled = false;
+        alert(`🛡️ Guardrail Blocked: ${job.error_message}`);
       }
 
       if (job.status === 'passed') {
-        clearInterval(pollInterval);
-        document.getElementById('generate-btn').disabled = false;
-        
-        // Show video
-        const player = document.getElementById('player');
-        const empty = document.getElementById('empty-state');
-        const downloadBtn = document.getElementById('download-btn');
-        
+        clearInterval(pollTimer);
+        document.getElementById('btn-generate-reel').disabled = false;
+
+        const player = document.getElementById('studio-video-player');
+        const placeholder = document.getElementById('studio-placeholder');
+        const dl = document.getElementById('btn-download-mp4');
+        const metaCard = document.getElementById('publish-metadata-card');
+
         player.src = `/api/jobs/${job.job_id}/video`;
         player.style.display = 'block';
-        empty.style.display = 'none';
-        
-        downloadBtn.href = `/api/jobs/${job.job_id}/video`;
-        downloadBtn.style.display = 'inline-flex';
+        placeholder.style.display = 'none';
 
-        // Show metadata
-        const metaBox = document.getElementById('meta-box');
-        const captionText = document.getElementById('post-caption-text');
-        captionText.innerText = `${job.caption}\n\n${(job.hashtags || []).join(' ')}`;
-        document.getElementById('badge-network').innerText = `Network: ${job.suggested_network || 'General'}`;
-        const score = job.scores ? job.scores.overall : 8.4;
-        document.getElementById('badge-score').innerText = `Score: ${score}/10`;
-        metaBox.style.display = 'block';
+        dl.href = `/api/jobs/${job.job_id}/video`;
+        dl.style.display = 'inline-flex';
+
+        document.getElementById('metadata-caption-content').innerText = `${job.caption}\n\n${(job.hashtags || []).join(' ')}`;
+        document.getElementById('badge-network-pill').innerText = `Network: ${job.suggested_network || 'General'}`;
+        const score = job.scores ? job.scores.overall : 8.5;
+        document.getElementById('badge-score-pill').innerText = `Critic Score: ${score}/10`;
+        metaCard.style.display = 'block';
+
+        // Update hero player as well
+        const heroPlayer = document.getElementById('hero-player');
+        if (heroPlayer) {
+          heroPlayer.src = `/api/jobs/${job.job_id}/video`;
+          document.getElementById('hero-phone-caption').innerText = `${job.topic} • 720x1280 vertical`;
+        }
       }
     }
 
-    function updateStepper(stage, status) {
-      const stages = ['moderating', 'scripting', 'visuals_and_audio', 'composing', 'passed'];
+    function updateStageNodes(stage, status) {
       const map = {
-        'moderating': 'step-mod',
-        'scripting': 'step-script',
-        'script_check': 'step-script',
-        'visuals_and_audio': 'step-assets',
-        'composing': 'step-compose',
-        'passed': 'step-done'
+        'moderating': 'node-mod',
+        'scripting': 'node-script',
+        'script_check': 'node-script',
+        'visuals_and_audio': 'node-assets',
+        'composing': 'node-compose',
+        'passed': 'node-export'
       };
+      const order = ['node-mod', 'node-script', 'node-assets', 'node-compose', 'node-export'];
+      const targetId = map[stage] || 'node-mod';
+      const targetIdx = order.indexOf(targetId);
 
-      const stepOrder = ['step-mod', 'step-script', 'step-assets', 'step-compose', 'step-done'];
-      const activeStepId = map[stage] || 'step-mod';
-      const activeIdx = stepOrder.indexOf(activeStepId);
-
-      stepOrder.forEach((id, idx) => {
+      order.forEach((id, idx) => {
         const el = document.getElementById(id);
         el.classList.remove('active', 'done');
         if (status === 'passed') {
           el.classList.add('done');
-        } else if (idx < activeIdx) {
+        } else if (idx < targetIdx) {
           el.classList.add('done');
-        } else if (idx === activeIdx) {
+        } else if (idx === targetIdx) {
           el.classList.add('active');
         }
       });
     }
 
-    function resetStepper() {
-      ['step-mod', 'step-script', 'step-assets', 'step-compose', 'step-done'].forEach(id => {
+    function resetStepNodes() {
+      ['node-mod', 'node-script', 'node-assets', 'node-compose', 'node-export'].forEach(id => {
         document.getElementById(id).classList.remove('active', 'done');
       });
     }
 
-    function logToTerminal(msg) {
-      const term = document.getElementById('terminal-logs');
-      const time = new Date().toTimeString().split(' ')[0];
-      term.innerHTML += `<div>[${time}] ${msg}</div>`;
-      term.scrollTop = term.scrollHeight;
-    }
-
-    function copyCaption() {
-      const text = document.getElementById('post-caption-text').innerText;
+    function copyPostDetails() {
+      const text = document.getElementById('metadata-caption-content').innerText;
       navigator.clipboard.writeText(text);
-      alert('Caption and hashtags copied to clipboard!');
+      alert('Post caption & hashtags copied!');
     }
 
-    async function expandTrendKeyword() {
-      const trend = document.getElementById('trend-keyword-input').value.trim();
+    async function triggerTrendExpansion() {
+      const trend = document.getElementById('input-trend-keyword').value.trim();
       if (!trend) return;
-      const out = document.getElementById('trend-angles-output');
-      out.innerHTML = '<div style="color:var(--text-muted); font-size:13px;">Analyzing trend angles...</div>';
+      const box = document.getElementById('trend-angles-container');
+      box.innerHTML = '<div style="color:var(--text-muted); font-size:13px;">Analyzing trending hooks...</div>';
 
       try {
         const resp = await fetch('/api/trend/expand', {
@@ -788,51 +1309,44 @@ How UPI made payments simple</textarea>
         });
         const data = await resp.json();
         const angles = data.angles || [];
-        out.innerHTML = angles.map(a => `
-          <div style="background:var(--surface-elevated); border:1px solid var(--border); border-radius:8px; padding:12px; margin-bottom:8px;">
-            <div style="font-weight:600; font-size:13px; color:#fff;">${a.topic}</div>
-            <div style="font-size:12px; color:var(--text-muted); margin:4px 0;">Why it works: ${a.why_it_works}</div>
-            <button class="chip" onclick="setTopic('${a.topic.replace(/'/g, "\\'")}'); switchTab('single');">Use this topic ➔</button>
+        box.innerHTML = angles.map(a => `
+          <div style="background:var(--surface-elevated); border:1px solid var(--border); border-radius:var(--radius-sm); padding:14px; margin-bottom:10px;">
+            <div style="font-weight:700; font-size:14px; color:#fff;">${a.topic}</div>
+            <div style="font-size:12px; color:var(--text-muted); margin:4px 0 10px;">Why it works: ${a.why_it_works}</div>
+            <button class="chip-item" onclick="setTopicValue('${a.topic.replace(/'/g, "\\'")}'); switchStudioTab('single');">Use this topic ➔</button>
           </div>
         `).join('');
       } catch (e) {
-        out.innerHTML = `<div style="color:var(--danger)">Failed to expand trend: ${e}</div>`;
+        box.innerHTML = `<div style="color:var(--danger)">Failed to propose angles: ${e}</div>`;
       }
     }
 
-    async function loadHistory() {
-      const list = document.getElementById('history-list');
-      list.innerHTML = '<div style="color:var(--text-muted); font-size:13px;">Loading history...</div>';
+    async function fetchHistory() {
+      const list = document.getElementById('history-items-container');
+      list.innerHTML = '<div style="color:var(--text-muted); font-size:13px;">Loading recent runs...</div>';
       try {
         const resp = await fetch('/api/jobs');
         const jobs = await resp.json();
         if (jobs.length === 0) {
-          list.innerHTML = '<div style="color:var(--text-muted); font-size:13px;">No jobs recorded yet.</div>';
+          list.innerHTML = '<div style="color:var(--text-muted); font-size:13px;">No recorded runs yet.</div>';
           return;
         }
         list.innerHTML = jobs.map(j => `
-          <div style="background:var(--surface-elevated); border:1px solid var(--border); border-radius:8px; padding:12px; display:flex; justify-content:space-between; align-items:center;">
+          <div style="background:var(--surface-elevated); border:1px solid var(--border); border-radius:var(--radius-sm); padding:14px; display:flex; justify-content:space-between; align-items:center;">
             <div>
-              <div style="font-weight:600; font-size:13px;">${j.topic}</div>
+              <div style="font-weight:700; font-size:14px;">${j.topic}</div>
               <div style="font-size:11px; color:var(--text-muted);">${j.job_id} • ${j.stage}</div>
             </div>
             <div style="display:flex; align-items:center; gap:8px;">
-              <span class="badge-pill" style="margin:0;">${j.status.toUpperCase()}</span>
-              ${j.status === 'passed' ? `<a href="/api/jobs/${j.job_id}/video" target="_blank" class="chip">Watch</a>` : ''}
+              <span class="tag-bubble" style="margin:0;">${j.status.toUpperCase()}</span>
+              ${j.status === 'passed' ? `<a href="/api/jobs/${j.job_id}/video" target="_blank" class="chip-item">Watch</a>` : ''}
             </div>
           </div>
         `).join('');
       } catch (e) {
-        list.innerHTML = `<div style="color:var(--danger)">Failed to load history: ${e}</div>`;
+        list.innerHTML = `<div style="color:var(--danger)">Error loading history: ${e}</div>`;
       }
     }
-
-    // Health check on load
-    fetch('/api/health').then(r => r.json()).then(d => {
-      document.getElementById('health-text').innerText = `Engine Online (${d.llm_provider})`;
-    }).catch(() => {
-      document.getElementById('health-text').innerText = 'Offline';
-    });
   </script>
 </body>
 </html>
