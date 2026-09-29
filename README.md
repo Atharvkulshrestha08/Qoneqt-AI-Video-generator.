@@ -1,158 +1,383 @@
-# QoneqtReel Engine 🎬⚡
+# QoneqtReel Engine 🎬
 
-**An autonomous, self-looping vertical video pipeline for the Qoneqt Global Feed.**  
-*Built for the Qoneqt x CTRL FREAK Hackathon.*
+> **AI-powered autonomous video pipeline for the Qoneqt Global Feed.**  
+> Built for the **Qoneqt × CTRL FREAK Hackathon** — and built to production standard.
+
+<div align="center">
+
+![Python](https://img.shields.io/badge/Python-3.11+-3776AB?style=for-the-badge&logo=python&logoColor=white)
+![FastAPI](https://img.shields.io/badge/FastAPI-0.110+-009688?style=for-the-badge&logo=fastapi&logoColor=white)
+![Gemini](https://img.shields.io/badge/Google_Gemini-AI-4285F4?style=for-the-badge&logo=google&logoColor=white)
+![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)
+![Status](https://img.shields.io/badge/Status-Production_Ready-brightgreen?style=for-the-badge)
+
+</div>
 
 ---
 
-## 1. Overview
-**QoneqtReel Engine** turns any topic, idea, trend, or question into a publish-ready 30-second vertical video (9:16, 720x1280, 30fps) with zero human intervention.
+## What Is This?
 
-It is designed as an industrial-grade closed-loop generator: given a queue of topics, it generates scripts, creates high-resolution visuals, synthesizes voiceovers, generates original ambient background pads, burns in mobile safe-zone captions, applies an AI-disclosure watermark, and runs an automated quality critic with targeted retries before exporting.
+**QoneqtReel Engine** turns any topic — a question, a trend, a news headline, an idea — into a complete, publish-ready **30-second vertical video reel** with zero human involvement after the initial prompt.
+
+Type `"Why do cats purr?"` and get back a `.mp4` with:
+- ✅ An AI-written 5-scene script with a viral hook
+- ✅ AI-generated cinematic images for every scene (Pollinations `flux` model)
+- ✅ Natural-voice TTS narration (Microsoft Edge TTS, Indian accent)
+- ✅ Animated Ken Burns effect on all visuals
+- ✅ Auto-synced burned-in captions
+- ✅ Original ambient background music (synthesized, copyright-clean)
+- ✅ Safe-zone framing, progress bar, AI-disclosure badge
+- ✅ Content safety guardrails at every stage
+
+This is **not a wrapper around someone else's API**. Every stage — script generation, image sourcing, TTS, audio synthesis, video composition — is built ground-up with production-level fallback ladders, retry logic, and quality gates.
 
 ---
 
-## 2. Architecture & Pipeline Flow
+## Architecture
 
-```mermaid
-flowchart TD
-    A[Topic / Prompt / Idea] --> B[G1: Input Moderation]
-    B -->|Blocked| BlockedState[State: Blocked + Reason Logged]
-    B -->|Passed| C[LLM Script Generator: Gemini / Groq / Fallback]
-    C --> D[G2 & G3: Script Moderation & Real-Person Check]
-    D -->|Violation| C
-    D -->|Passed| E[Asset Generation]
-    
-    subgraph Fallback Asset Ladders
-        E --> V[Visuals: Pollinations -> Pexels -> Pillow Gradient Cards]
-        E --> A1[Voiceover: edge-tts -> gTTS -> Silent Track]
-        E --> M[Music: Original Synthesised Ambient Pad]
-    end
-
-    V --> F[FFmpeg Assembly Engine]
-    A1 --> F
-    M --> F
-    
-    F -->|Burn Captions + AI Badge + Audio Ducking| G[Composed 720x1280 MP4]
-    G --> H[Programmatic & LLM Critic Loop]
-    H -->|Scores < Threshold| RetryRouter{Targeted Retry}
-    RetryRouter -->|Script low| C
-    RetryRouter -->|Visuals low| V
-    RetryRouter -->|Audio low| A1
-    H -->|Pass: Overall >= 7.0, Safety >= 8| Export[Export Ready Video + Qoneqt Metadata]
+```
+INPUT TOPIC
+    │
+    ▼
+┌─────────────────────────────────────────────────────────────┐
+│  GUARDRAIL G1 — Input Moderation                            │
+│  Keyword rules + LLM classifier → blocks harmful topics     │
+└──────────────────────────┬──────────────────────────────────┘
+                           │ PASS
+                           ▼
+┌─────────────────────────────────────────────────────────────┐
+│  SCRIPT ENGINE (llm.py)                                     │
+│  Gemini 3-flash → writes 5-scene JSON script plan           │
+│  Fallback: Groq Llama 3.3 → Topic-aware template            │
+└──────────────────────────┬──────────────────────────────────┘
+                           │
+                           ▼
+┌─────────────────────────────────────────────────────────────┐
+│  GUARDRAIL G2+G3 — Script Safety Review                     │
+│  Blocks hate, real-person likeness, unverifiable claims     │
+└──────────────────────────┬──────────────────────────────────┘
+                           │ PASS
+                           ▼
+┌─────────────────────────────────────────────────────────────┐
+│  MEDIA ENGINE (media.py)                  Per-scene:        │
+│  Visual Ladder:                                             │
+│    1. Pollinations AI (flux model)  → Best quality          │
+│    2. Pexels Stock Photos           → If key available      │
+│    3. Wikimedia Commons             → Free photography      │
+│    4. Pillow Gradient Card          → Guaranteed fallback   │
+│  Audio Ladder:                                              │
+│    1. Edge-TTS (Neural, en-IN)      → Natural voice         │
+│    2. gTTS                          → Simple fallback       │
+│    3. Silent Audio                  → Never crashes         │
+│  Music: NumPy ambient pad synthesizer (C minor, copyright-free) │
+└──────────────────────────┬──────────────────────────────────┘
+                           │
+                           ▼
+┌─────────────────────────────────────────────────────────────┐
+│  COMPOSE ENGINE (compose.py + FFmpeg)                       │
+│  Ken Burns pan/zoom → captions burn-in → audio ducking      │
+│  Progress bar overlay → AI badge → final 720×1280 MP4       │
+└──────────────────────────┬──────────────────────────────────┘
+                           │
+                           ▼
+┌─────────────────────────────────────────────────────────────┐
+│  CRITIC LOOP (loop.py)                                      │
+│  Scores: hook / clarity / pacing / visual_match / safety    │
+│  Overall ≥ 7.0 + Safety ≥ 8.0 → PASS                       │
+│  Otherwise → targeted retry (script / visuals / audio)      │
+│  Max 3 attempts before graceful fail                        │
+└──────────────────────────┬──────────────────────────────────┘
+                           │
+                           ▼
+                  📹 FINAL REEL .MP4
 ```
 
 ---
 
-## 3. The 5 Safety Guardrails
+## Key Features
 
-| Guardrail | Stage | Enforcement Mechanism | Failure Action |
-|---|---|---|---|
-| **G1: Input Moderation** | Pre-scripting | Deterministic rule-based filter + LLM safety classification for hate, violence, sexual content, weapons, self-harm, and scams. | Immediate hard block with logged reason; 0 API calls wasted. |
-| **G2: Script Moderation** | Post-scripting | Inspects generated script for safety violations, offensive themes, and risky claims in news/health/finance. | Targeted retry with safety feedback; blocks if persistent. |
-| **G3: No Real People / Deepfakes** | Script & Visuals | Rejects celebrity, politician, and private individual likenesses, names, or cloned voices. | Automatic entity scrubbing or script regeneration. |
-| **G4: Copyright-Clean Assets** | Assets | Original synthesised ambient music pad via NumPy (zero copyright claims), AI-generated images, or CC0 stock. | No external copyrighted audio or trademarked imagery permitted. |
-| **G5: AI Disclosure & Disclaimers** | Compose & Post | Permanent `"AI-GENERATED CONTENT"` watermark badge burned into video, and caption always ends with `"AI-generated video."` | Hardcoded into video composition engine and output metadata. |
+### 🤖 Multi-Provider LLM with Smart Fallbacks
+- Primary: **Google Gemini** (gemini-3-flash-preview, gemini-flash-lite-latest)
+- Fallback: **Groq** (Llama 3.3 70B Versatile)
+- Last resort: **Topic-aware deterministic generator** (8 content categories, never generic)
+- JSON output with `json-repair` for zero parse failures
+
+### 🖼️ 4-Tier Visual Ladder
+Every scene tries each tier in order — the video *always* gets an image, never crashes:
+1. **Pollinations AI `flux`** — photorealistic AI generation
+2. **Pexels** — professional stock photography (if API key provided)
+3. **Wikimedia Commons** — high-resolution free photographs
+4. **Pillow gradient card** — offline guaranteed fallback
+
+### 🛡️ 3-Layer Content Safety
+- **G1** — Input topic classification (LLM + keyword regex)
+- **G2** — Script content review (hate, real-person, unverifiable claims)
+- **G3** — Final quality gate via LLM critic
+
+### ⚡ Autonomous Self-Improvement Loop
+The critic scores every output. If it doesn't meet the quality bar, it retries with the specific feedback:
+- Low hook score → `RETRY_SCRIPT` (rewrites with critic feedback)
+- Audio issues → `RETRY_AUDIO`
+- Visual mismatch → `RETRY_VISUALS`
+
+### 🌐 REST API + Web Studio
+- Full async REST API (FastAPI)
+- Real-time job status polling
+- Built-in web UI at `localhost:7860`
+- Batch processing CLI (`python loop.py batch topics.txt`)
 
 ---
 
-## 4. Output Specification
+## Tech Stack
 
-| Property | Value |
+| Component | Technology |
 |---|---|
-| **Aspect Ratio** | 9:16 Vertical (Reel / Shorts format) |
-| **Resolution** | 720x1280 pixels |
-| **Target Duration** | ~30 seconds (25s - 32s) |
-| **Video Format** | MP4 (`libx264`, `yuv420p`, 30 fps) |
-| **Audio Format** | AAC 128 kbps (`edge-tts` Indian-English neural voice + ducked ambient pad) |
-| **Captions** | Burned-in, high-contrast typography in mobile safe zone (middle-lower third) |
-| **Disclosure** | Visible bottom-right AI badge + metadata caption disclaimer |
+| API Server | FastAPI + Uvicorn |
+| AI / LLM | Google Gemini API (`google-genai` SDK) |
+| LLM Fallback | Groq (Llama 3.3 70B) |
+| Image Gen | Pollinations AI (flux model, no API key needed) |
+| Stock Images | Pexels API, Wikimedia Commons |
+| TTS | Microsoft Edge-TTS (Neural voices) |
+| Music | NumPy synthesizer (original ambient pad) |
+| Video Compose | FFmpeg via `imageio-ffmpeg` |
+| Image Processing | Pillow |
+| Data Validation | Pydantic v2 |
+| JSON Repair | `json-repair` library |
+| Containerization | Docker + docker-compose |
+| Testing | pytest |
 
 ---
 
-## 5. Quickstart & Local Setup
+## Quickstart
 
 ### Prerequisites
 - Python 3.11+
-- FFmpeg (automatically detected from system PATH or bundled via `imageio-ffmpeg`)
+- A free [Google Gemini API key](https://aistudio.google.com/apikey)
 
-### 1. Installation
+### 1. Clone & Install
+
 ```bash
-git clone <repo-url>
-cd <repo-folder>
+git clone https://github.com/Atharvkulshrestha08/Qoneqt-AI-Video-generator.git
+cd Qoneqt-AI-Video-generator
 pip install -r requirements.txt
 ```
 
-### 2. Environment Configuration
-Copy the template and add your API keys:
+### 2. Configure Environment
+
 ```bash
 cp .env.example .env
 ```
-Edit `.env`:
+
+Open `.env` and fill in your API key:
+
 ```env
-LLM_PROVIDER=gemini            # gemini | groq
-GEMINI_API_KEY=your_key_here
-GROQ_API_KEY=your_backup_key   # optional
-PEXELS_API_KEY=your_photo_key  # optional
-MAX_ATTEMPTS=3
+LLM_PROVIDER=gemini
+GEMINI_API_KEY=your_gemini_key_here   # Get free at aistudio.google.com/apikey
+GROQ_API_KEY=                          # Optional: get free at console.groq.com
+PEXELS_API_KEY=                        # Optional: higher quality stock photos
 ```
-*(Note: If no keys are provided, the engine runs fully offline using its built-in fallback ladder!)*
 
-### 3. Launch the Studio UI
+### 3. Run the Server
+
 ```bash
-uvicorn api:app --reload --port 7860
+python -m uvicorn api:app --reload --port 7860
 ```
-Open **`http://localhost:7860`** in your browser.
+
+Open **http://localhost:7860** in your browser.
+
+### 4. Generate Your First Video
+
+Enter any topic in the web UI and hit **Generate**. Example topics:
+- `"Why do black holes not let light escape?"`
+- `"The real story behind Diwali"`
+- `"How UPI changed India in 8 years"`
+- `"Why sleep deprivation is worse than you think"`
+- `"The hidden economy of street food in Mumbai"`
+
+### 5. Or Use the CLI
+
+```bash
+# Single video
+python pipeline.py "How GPS satellites know exactly where you are"
+
+# Batch from file
+python loop.py batch samples/topics.txt
+
+# Batch with trend context
+python loop.py batch samples/topics.txt --trend "viral India content"
+```
 
 ---
 
-## 6. Batch Runner CLI
+## Docker Deployment
 
-Run multiple topics autonomously in batch mode:
 ```bash
-python scripts/run_batch.py samples/topics.txt
-```
+# Build
+docker build -t qoneqtreel .
 
-The runner outputs:
-- **`batch_report.json`**: Detailed JSON metrics for all jobs.
-- **`batch_report.md`**: Markdown summary table showing pass rates, runtimes, and guardrail verdicts.
+# Run
+docker run -p 7860:7860 \
+  -e GEMINI_API_KEY=your_key \
+  qoneqtreel
+```
 
 ---
 
-## 7. API Reference
+## API Reference
 
-| Method | Endpoint | Description |
+### POST `/api/jobs`
+Start a new video generation job.
+
+```json
+{
+  "topic": "Why does the moon affect ocean tides?",
+  "style": "energetic explainer",
+  "trend": ""
+}
+```
+
+**Response:**
+```json
+{
+  "job_id": "job_1717000000_abc123",
+  "status": "queued"
+}
+```
+
+### GET `/api/jobs/{job_id}`
+Poll job status and retrieve results.
+
+```json
+{
+  "job_id": "job_1717000000_abc123",
+  "status": "passed",
+  "stage": "passed",
+  "video_path": "jobs/job_1717000000_abc123/final_reel.mp4",
+  "caption": "The hidden science of ocean tides...",
+  "hashtags": ["#Science", "#OceanFacts"],
+  "scores": {
+    "hook": 8.5,
+    "clarity": 9.0,
+    "safety": 9.5,
+    "overall": 8.8
+  }
+}
+```
+
+### GET `/api/jobs/{job_id}/video`
+Stream the final `.mp4` file.
+
+### GET `/api/health`
+Health check endpoint.
+
+---
+
+## Output Specification
+
+| Property | Value |
+|---|---|
+| Resolution | 720 × 1280 px (9:16 vertical) |
+| Duration | 28–32 seconds |
+| Frame Rate | 30 FPS |
+| Audio | Stereo, 44.1kHz, narration + ambient pad |
+| Format | H.264 MP4 |
+| Narration | ~70 words, Microsoft Neural TTS |
+| Captions | Burned-in, safe-zone compliant |
+| Watermark | Subtle bottom-right badge |
+
+---
+
+## Project Structure
+
+```
+qoneqtreel/
+├── api.py              # FastAPI REST endpoints + Web UI router
+├── pipeline.py         # Core job orchestration (moderation → script → media → compose)
+├── llm.py              # LLM providers, Pydantic schemas, fallback generator
+├── media.py            # Visual ladder, TTS ladder, ambient music synthesizer
+├── compose.py          # FFmpeg video assembly, Ken Burns, captions, ducking
+├── loop.py             # Critic scoring, retry logic, batch runner
+├── moderation.py       # Content safety guardrails (G1, G2, G3)
+├── prompts/
+│   ├── script_generator.txt   # Main LLM script prompt
+│   ├── critic.txt             # Quality critic prompt
+│   ├── moderate_input.txt     # Input safety prompt
+│   ├── moderate_script.txt    # Script safety prompt
+│   └── trend_expander.txt     # Trend angle expansion
+├── samples/
+│   ├── topics.txt             # Sample safe topics for testing
+│   └── adversarial.txt        # Sample blocked topics for guardrail testing
+├── static/
+│   └── index.html             # Web Studio UI
+├── tests/                     # pytest test suite
+├── jobs/                      # Runtime job artifacts (gitignored)
+├── Dockerfile                 # Production container with FFmpeg
+├── requirements.txt
+└── .env.example
+```
+
+---
+
+## Content Safety
+
+The engine operates a **zero-escape policy** on harmful content:
+
+| Guardrail | Stage | What It Blocks |
 |---|---|---|
-| `GET` | `/api/health` | Health and provider status |
-| `POST` | `/api/jobs` | Create video job `{topic, style?, trend?}` |
-| `POST` | `/api/batch` | Submit a batch list of topics `{topics: [...]}` |
-| `GET` | `/api/jobs/{id}` | Poll job status, stage logs, and quality scores |
-| `GET` | `/api/jobs/{id}/video` | Download final MP4 video |
-| `GET` | `/api/jobs` | List recent job executions |
-| `POST` | `/api/trend/expand` | Expand a trend keyword into 3 video angles |
+| **G1** | Input | Hate speech, weapons, fake news, deepfakes, explicit content, self-harm |
+| **G2** | Script | Real-person likenesses, brand names, unverifiable health/finance claims, copyrighted characters |
+| **G3** | Quality | Low hook score, duration violations, missing audio, word count violations |
+
+All guardrails run in parallel: LLM classifier + deterministic keyword regex. If the LLM is down, the regex still fires.
 
 ---
 
-## 8. Deploying to Hugging Face Spaces / Render
+## Hackathon Context
 
-### Hugging Face Spaces (Docker Space)
-1. Create a new Space on [Hugging Face Spaces](https://huggingface.co/spaces).
-2. Select **Docker** as the SDK.
-3. Push this repository to your Space repository.
-4. Set secret `GEMINI_API_KEY` (and optionally `GROQ_API_KEY`) under Space **Settings -> Variables and Secrets**.
-5. Your public URL will be live at `https://huggingface.co/spaces/<username>/<space-name>`.
+This project was built for the **Qoneqt × CTRL FREAK AI Hackathon**.
+
+**Challenge:** Build an AI system that can automatically generate short-form video content for the Qoneqt social platform's Global Feed.
+
+**Our answer:** A fully autonomous, self-critiquing, self-correcting video pipeline that requires zero human intervention per video — while maintaining strict content safety standards suitable for a real social platform.
+
+**What makes this different from a simple API wrapper:**
+- Every component has a graceful degradation path — the system never crashes, it degrades to a lower-quality tier
+- The critic loop is inspired by RLHF: the model reviews its own output and improves it
+- The content safety system is dual-layer (LLM + regex) so guardrails survive API outages
+- All media assets are either generated (AI images, synthesized music) or license-clear (Wikimedia, Edge-TTS)
+- The ambient music is synthesized entirely from NumPy — not sampled from any existing track
 
 ---
 
-## 9. Running Verification Tests
+## Roadmap
 
-Run the test suite:
-```bash
-python -m pytest tests/test_engine.py -v
-```
+- [ ] Add Pexels video clip support for scene backgrounds
+- [ ] Subtitle translation (Hindi, Tamil, Telugu)
+- [ ] Direct Qoneqt API upload integration
+- [ ] Thumbnail auto-generation
+- [ ] Trend detection via Twitter/X API integration
+- [ ] A/B testing two script variants per topic
 
-This verifies:
-1. Pydantic schema validation & strict JSON structure
-2. Guardrail G1 blocking all adversarial prompts
-3. Safe prompt acceptance
-4. FFmpeg programmatic composition checks
+---
+
+## License
+
+MIT License — see [LICENSE](LICENSE) for details.
+
+---
+
+## Author
+
+**Atharv Kulshrestha**  
+Built with 🔥 for the Qoneqt × CTRL FREAK Hackathon
+
+---
+
+<div align="center">
+
+*This is not a demo. This is not a proof-of-concept.*  
+*This is a production-grade AI video pipeline.*
+
+**[Try it → http://localhost:7860](http://localhost:7860)**
+
+</div>
