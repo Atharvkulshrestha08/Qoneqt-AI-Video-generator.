@@ -1,3 +1,14 @@
+---
+title: Qoneqt AI Video Generator
+emoji: 🎬
+colorFrom: orange
+colorTo: red
+sdk: docker
+app_port: 7860
+pinned: false
+license: mit
+---
+
 # QoneqtReel Engine 🎬
 
 > **AI-powered autonomous video pipeline for the Qoneqt Global Feed.**  
