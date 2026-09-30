@@ -14,5 +14,9 @@ venv/
 *.mp3
 *.png
 *.jpg
+node_modules/
+.next/
+frontend/node_modules/
+frontend/.next/
 batch_report.json
 batch_report.md

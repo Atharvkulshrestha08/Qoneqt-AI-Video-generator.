@@ -100,7 +100,21 @@ INPUT TOPIC
 - Primary: **Google Gemini** (gemini-3-flash-preview, gemini-flash-lite-latest)
 - Fallback: **Groq** (Llama 3.3 70B Versatile)
 - Last resort: **Topic-aware deterministic generator** (8 content categories, never generic)
-- JSON output with `json-repair` for zero parse failures
+- JSON output with `json-repair` and smart-quote normalization for zero parse failures
+
+### 🏭 Interactive 3D Machine ("Agentic Factory")
+- Integrated procedural Three.js simulation visualizing the 5 stages of autonomous video assembly:
+  1. **Cabinet:** Topic input & prompt ingestion
+  2. **Engine:** Gemini LLM scene script & hook formulation
+  3. **Storefront:** AI image synthesis (Pollinations Flux) & neural voiceover (Edge-TTS)
+  4. **Assembly Line:** FFmpeg/MoviePy Ken Burns compositor & subtitle burner
+  5. **Checkout:** Verified MP4 dispatch to Qoneqt Global Feed
+- Features full 3D orbital inspection, cutaway view, individual station focus, and native embed mode (`?embed=1`).
+
+### 🌌 Black Hole UI & shadcn Component System
+- Custom `@/components/ui/black-hole.tsx` gravitational accretion disk canvas component.
+- Supports standard shadcn UI conventions, Tailwind CSS, and TypeScript (`frontend/`).
+- Cosmic photon-ring animation integrated natively into the Hero Studio.
 
 ### 🖼️ 4-Tier Visual Ladder
 Every scene tries each tier in order — the video *always* gets an image, never crashes:
