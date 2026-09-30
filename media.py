@@ -99,15 +99,26 @@ def generate_pillow_text_card(
 
 
 def fetch_pollinations_image(prompt: str, output_path: Path, seed: int = -1) -> bool:
-    """Tier 1: Fetches free AI image from Pollinations.ai — tries flux (best quality) then sana."""
+    """Tier 1: Fetches high-fidelity AI image from Pollinations.ai (flux -> turbo -> dreamshaper)."""
     import random
+    import time
     if seed < 0:
         seed = random.randint(1, 999999)
 
-    clean_prompt = prompt.replace("?", "").replace("&", " and ").replace("\"", "").replace("'", "")[:220].strip()
-    encoded = urllib.parse.quote(clean_prompt)
+    clean_prompt = prompt.replace("?", "").replace("&", " and ").replace("\"", "").replace("'", "")
+    # Inject professional cinematic anchors
+    enhanced_prompt = (
+        f"vertical 9:16 portrait composition, {clean_prompt}, "
+        "8k, photorealistic, dramatic cinematic lighting, 35mm lens, sharp focus, vivid colors, masterwork, no text, no watermark"
+    )
+    encoded = urllib.parse.quote(enhanced_prompt[:250].strip())
 
-    models_to_try = ["flux", "sana"]  # flux = best photorealistic quality; sana = fast artistic
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+        "Accept": "image/avif,image/webp,image/apng,image/*,*/*;q=0.8",
+    }
+
+    models_to_try = ["flux", "turbo", "dreamshaper"]
     for model_name in models_to_try:
         try:
             url = (
@@ -115,21 +126,22 @@ def fetch_pollinations_image(prompt: str, output_path: Path, seed: int = -1) -> 
                 f"?model={model_name}&width={TARGET_WIDTH}&height={TARGET_HEIGHT}"
                 f"&nologo=true&seed={seed}&enhance=true"
             )
-            resp = requests.get(url, timeout=45)
+            resp = requests.get(url, headers=headers, timeout=25)
             if resp.status_code == 200 and len(resp.content) > 8000:
                 with open(output_path, "wb") as f:
                     f.write(resp.content)
-                # Verify it's a real image and crop to exact 9:16
+                # Verify it's a real image and crop/fit to exact 9:16
                 with Image.open(output_path) as im:
                     im = im.convert("RGB")
                     im_resized = resize_and_crop_center(im, TARGET_WIDTH, TARGET_HEIGHT)
-                    im_resized.save(str(output_path), "JPEG", quality=94)
-                logger.info(f"Pollinations {model_name} AI image generated: {output_path.name} (seed={seed})")
+                    im_resized.save(str(output_path), "JPEG", quality=95)
+                logger.info(f"Pollinations {model_name} AI image successfully generated: {output_path.name} (seed={seed})")
+                time.sleep(0.3)  # Gentle spacing to avoid rate limits
                 return True
             else:
                 logger.warning(f"Pollinations {model_name}: status {resp.status_code}, size {len(resp.content)}")
         except Exception as e:
-            logger.warning(f"Pollinations {model_name} failed for '{prompt[:30]}...': {e}")
+            logger.warning(f"Pollinations {model_name} failed for '{prompt[:35]}...': {e}")
     return False
 
 

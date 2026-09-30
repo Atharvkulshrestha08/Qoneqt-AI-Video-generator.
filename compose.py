@@ -77,13 +77,14 @@ def overlay_captions_and_badge(
             fill_col = (255, 255, 255, 240) if (s + 1) <= scene_number else (255, 255, 255, 70)
             draw.rounded_rectangle([bx, bar_y, bx + bar_width, bar_y + 6], radius=3, fill=fill_col)
 
-        # 3. Main Burned-in Caption (Safe Zone: Lower Middle)
+        # 3. High-Engagement Mobile Subtitle (Middle-Lower Safe Zone)
+        # Wrap words cleanly
         words = caption_text.strip().split()
         lines = []
         curr = []
         for w in words:
             curr.append(w)
-            if len(" ".join(curr)) > 18:
+            if len(" ".join(curr)) > 16:
                 curr.pop()
                 lines.append(" ".join(curr))
                 curr = [w]
@@ -92,27 +93,28 @@ def overlay_captions_and_badge(
 
         # Position captions in middle-lower third (Y: 820)
         box_y = 820
-        line_height = 54
-        box_h = len(lines) * line_height + 34
-        box_w = min(TARGET_WIDTH - 60, max(360, max(len(l) for l in lines) * 24 + 60))
+        line_height = 56
+        box_h = len(lines) * line_height + 40
+        box_w = min(TARGET_WIDTH - 60, max(380, max(len(l) for l in lines) * 25 + 64))
         box_x1 = (TARGET_WIDTH - box_w) // 2
         box_y1 = box_y - (box_h // 2)
 
-        # Translucent dark backing pill
+        # Translucent dark frosted pill with golden outline
         draw.rounded_rectangle(
             [box_x1, box_y1, box_x1 + box_w, box_y1 + box_h],
-            radius=18,
-            fill=(10, 10, 12, 195),
-            outline=(255, 255, 255, 45),
+            radius=20,
+            fill=(8, 10, 16, 210),
+            outline=(249, 124, 0, 140),  # Qoneqt orange glow outline
             width=2,
         )
 
         for idx, line in enumerate(lines):
-            ly = box_y1 + 18 + idx * line_height + 16
-            # Drop shadow
-            draw.text((TARGET_WIDTH // 2 + 2, ly + 2), line.upper(), fill=(0, 0, 0, 255), anchor="mm")
-            # Highlight first line or important words with warm gold/yellow
-            txt_color = (255, 230, 80, 255) if idx == 0 and len(lines) > 1 else (255, 255, 255, 255)
+            ly = box_y1 + 20 + idx * line_height + 18
+            # Heavy drop shadow for contrast against any background
+            for dx, dy in [(-2, 2), (2, 2), (0, 3)]:
+                draw.text((TARGET_WIDTH // 2 + dx, ly + dy), line.upper(), fill=(0, 0, 0, 255), anchor="mm")
+            # Highlight first line or punchy phrases with warm gold/yellow
+            txt_color = (255, 220, 60, 255) if idx == 0 and len(lines) > 1 else (255, 255, 255, 255)
             draw.text((TARGET_WIDTH // 2, ly), line.upper(), fill=txt_color, anchor="mm")
 
         # 4. Mandatory Guardrail G5: AI Disclosure Badge (Bottom Safe Zone)
@@ -149,18 +151,53 @@ def render_scene_clip(
     audio_path: Path,
     output_clip_path: Path,
     duration_sec: float,
+    scene_number: int = 1,
 ) -> Path:
     """
-    Renders an individual scene video clip with subtle zoompan motion
-    and synchronized audio.
+    Renders an individual scene video clip with alternating cinematic camera motions
+    and smooth scene fades:
+    - Scene 1: Smooth Zoom-In (hook)
+    - Scene 2: Gentle Pan Right + Drift
+    - Scene 3: Slow Zoom-Out (revealing context)
+    - Scene 4: Gentle Pan Left + Drift
+    - Scene 5: Dynamic Push-In (call to action)
     """
     ffmpeg_bin = get_ffmpeg_binary()
     num_frames = int(duration_sec * FPS)
 
-    # Slight zoom in motion effect
+    # Alternating motion modes
+    mode = (scene_number - 1) % 5
+    if mode == 0:
+        # Dynamic Zoom In (from 1.0 to 1.15)
+        zoom_expr = "min(1.0+0.0012*on,1.15)"
+        x_expr = "iw/2-(iw/zoom/2)"
+        y_expr = "ih/2-(ih/zoom/2)"
+    elif mode == 1:
+        # Subtle Pan Right
+        zoom_expr = "1.08"
+        x_expr = f"(iw-iw/zoom)*(on/{num_frames})"
+        y_expr = "ih/2-(ih/zoom/2)"
+    elif mode == 2:
+        # Dynamic Zoom Out (from 1.14 down to 1.0)
+        zoom_expr = "max(1.14-0.0010*on,1.0)"
+        x_expr = "iw/2-(iw/zoom/2)"
+        y_expr = "ih/2-(ih/zoom/2)"
+    elif mode == 3:
+        # Subtle Pan Left
+        zoom_expr = "1.08"
+        x_expr = f"(iw-iw/zoom)*(1.0-on/{num_frames})"
+        y_expr = "ih/2-(ih/zoom/2)"
+    else:
+        # Punchy Zoom In
+        zoom_expr = "min(1.0+0.0015*on,1.18)"
+        x_expr = "iw/2-(iw/zoom/2)"
+        y_expr = "ih/2-(ih/zoom/2)"
+
+    fade_out_start = max(0.1, duration_sec - 0.35)
     vf_filter = (
-        f"scale=800:1422,"
-        f"zoompan=z='min(zoom+0.0008,1.08)':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':d={num_frames}:s={TARGET_WIDTH}x{TARGET_HEIGHT}:fps={FPS},"
+        f"scale=840:1494,"
+        f"zoompan=z='{zoom_expr}':x='{x_expr}':y='{y_expr}':d={num_frames}:s={TARGET_WIDTH}x{TARGET_HEIGHT}:fps={FPS},"
+        f"fade=t=in:st=0:d=0.3,fade=t=out:st={fade_out_start:.2f}:d=0.35,"
         f"format=yuv420p"
     )
 
@@ -192,7 +229,7 @@ def render_scene_clip(
             "-t", f"{duration_sec:.2f}",
             "-i", str(framed_image),
             "-i", str(audio_path),
-            "-vf", f"scale={TARGET_WIDTH}:{TARGET_HEIGHT},format=yuv420p",
+            "-vf", f"scale={TARGET_WIDTH}:{TARGET_HEIGHT},fade=t=in:st=0:d=0.3,fade=t=out:st={fade_out_start:.2f}:d=0.35,format=yuv420p",
             "-c:v", "libx264",
             "-preset", "veryfast",
             "-c:a", "aac",
