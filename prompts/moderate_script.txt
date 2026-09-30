@@ -6,4 +6,4 @@ SCRIPT:
 {script_json}
 
 Return ONLY JSON:
-{"passed": true|false, "issues": ["..."], "fixes": ["..."]}
+{{"passed": true|false, "issues": ["..."], "fixes": ["..."]}}

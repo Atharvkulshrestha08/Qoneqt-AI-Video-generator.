@@ -77,46 +77,6 @@ def overlay_captions_and_badge(
             fill_col = (255, 255, 255, 240) if (s + 1) <= scene_number else (255, 255, 255, 70)
             draw.rounded_rectangle([bx, bar_y, bx + bar_width, bar_y + 6], radius=3, fill=fill_col)
 
-        # 3. High-Engagement Mobile Subtitle (Middle-Lower Safe Zone)
-        # Wrap words cleanly
-        words = caption_text.strip().split()
-        lines = []
-        curr = []
-        for w in words:
-            curr.append(w)
-            if len(" ".join(curr)) > 16:
-                curr.pop()
-                lines.append(" ".join(curr))
-                curr = [w]
-        if curr:
-            lines.append(" ".join(curr))
-
-        # Position captions in middle-lower third (Y: 820)
-        box_y = 820
-        line_height = 56
-        box_h = len(lines) * line_height + 40
-        box_w = min(TARGET_WIDTH - 60, max(380, max(len(l) for l in lines) * 25 + 64))
-        box_x1 = (TARGET_WIDTH - box_w) // 2
-        box_y1 = box_y - (box_h // 2)
-
-        # Translucent dark frosted pill with golden outline
-        draw.rounded_rectangle(
-            [box_x1, box_y1, box_x1 + box_w, box_y1 + box_h],
-            radius=20,
-            fill=(8, 10, 16, 210),
-            outline=(249, 124, 0, 140),  # Qoneqt orange glow outline
-            width=2,
-        )
-
-        for idx, line in enumerate(lines):
-            ly = box_y1 + 20 + idx * line_height + 18
-            # Heavy drop shadow for contrast against any background
-            for dx, dy in [(-2, 2), (2, 2), (0, 3)]:
-                draw.text((TARGET_WIDTH // 2 + dx, ly + dy), line.upper(), fill=(0, 0, 0, 255), anchor="mm")
-            # Highlight first line or punchy phrases with warm gold/yellow
-            txt_color = (255, 220, 60, 255) if idx == 0 and len(lines) > 1 else (255, 255, 255, 255)
-            draw.text((TARGET_WIDTH // 2, ly), line.upper(), fill=txt_color, anchor="mm")
-
         # 4. Mandatory Guardrail G5: AI Disclosure Badge (Bottom Safe Zone)
         badge_text = "AI-GENERATED CONTENT"
         badge_w = 210
@@ -144,6 +104,70 @@ def overlay_captions_and_badge(
     return output_path
 
 
+# --- Subtitle Generation ---
+
+def generate_ass_subtitle(text: str, duration_sec: float, output_path: Path) -> Path:
+    """
+    Generates an Advanced SubStation Alpha (.ass) subtitle file with word-by-word
+    karaoke highlight (Reels/TikTok style).
+    """
+    # Define styles
+    # {\k} tags denote karaoke timing in centiseconds (1/100 of a second)
+    ass_header = f"""[Script Info]
+ScriptType: v4.00+
+PlayResX: {TARGET_WIDTH}
+PlayResY: {TARGET_HEIGHT}
+WrapStyle: 1
+
+[V4+ Styles]
+Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
+Style: Default,Arial,60,&H00FFFFFF,&H0000FFFF,&H00000000,&H99000000,-1,0,0,0,100,100,0,0,1,3,2,2,40,40,300,1
+
+[Events]
+Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
+"""
+    
+    words = text.strip().upper().split()
+    if not words:
+        with open(output_path, "w", encoding="utf-8") as f:
+            f.write(ass_header)
+        return output_path
+
+    # Distribute karaoke timing evenly across duration
+    total_cs = int(duration_sec * 100)
+    cs_per_word = max(1, total_cs // len(words))
+    
+    # Format time for ASS: H:MM:SS.cs
+    def format_time(seconds: float) -> str:
+        h = int(seconds // 3600)
+        m = int((seconds % 3600) // 60)
+        s = seconds % 60
+        return f"{h}:{m:02d}:{s:05.2f}"
+
+    start_time = format_time(0.0)
+    end_time = format_time(duration_sec)
+    
+    # {\c&H00D7FF&} sets the highlight color (BGR format -> Yellow/Orange)
+    # The trick: we can use a basic ASS animation or just {\kX} tags with a secondary color.
+    # SecondaryColour is &H0000FFFF (Yellow in BGR). PrimaryColour is White.
+    # Wait, {\k} paints Primary over Secondary. So we swap them in the style:
+    # PrimaryColour: &H00FFFFFF (White), SecondaryColour: &H0000D7FF (Gold)
+    # But {\k} transitions from Secondary to Primary! 
+    # Let's just use {\k} with standard colors.
+    
+    dialogue_text = "{\\k0}"
+    for w in words:
+        dialogue_text += f"{{\\k{cs_per_word}}}{w} "
+
+    # To make it truly pop, we can also add a background box via BorderStyle=3
+    
+    with open(output_path, "w", encoding="utf-8") as f:
+        f.write(ass_header)
+        f.write(f"Dialogue: 0,{start_time},{end_time},Default,,0,0,0,,{dialogue_text}\n")
+        
+    return output_path
+
+
 # --- Assembly via FFmpeg ---
 
 def render_scene_clip(
@@ -152,18 +176,18 @@ def render_scene_clip(
     output_clip_path: Path,
     duration_sec: float,
     scene_number: int = 1,
+    caption_text: str = "",
+    audio_dur: float = 6.0,
 ) -> Path:
     """
     Renders an individual scene video clip with alternating cinematic camera motions
-    and smooth scene fades:
-    - Scene 1: Smooth Zoom-In (hook)
-    - Scene 2: Gentle Pan Right + Drift
-    - Scene 3: Slow Zoom-Out (revealing context)
-    - Scene 4: Gentle Pan Left + Drift
-    - Scene 5: Dynamic Push-In (call to action)
+    and smooth scene fades.
     """
     ffmpeg_bin = get_ffmpeg_binary()
     num_frames = int(duration_sec * FPS)
+    
+    ass_path = output_clip_path.with_suffix(".ass")
+    generate_ass_subtitle(caption_text, audio_dur, ass_path)
 
     # Alternating motion modes
     mode = (scene_number - 1) % 5
@@ -194,10 +218,12 @@ def render_scene_clip(
         y_expr = "ih/2-(ih/zoom/2)"
 
     fade_out_start = max(0.1, duration_sec - 0.35)
+    
+    ass_path_clean = str(ass_path.resolve()).replace("\\", "\\\\").replace(":", "\\:")
     vf_filter = (
         f"scale=840:1494,"
         f"zoompan=z='{zoom_expr}':x='{x_expr}':y='{y_expr}':d={num_frames}:s={TARGET_WIDTH}x{TARGET_HEIGHT}:fps={FPS},"
-        f"fade=t=in:st=0:d=0.3,fade=t=out:st={fade_out_start:.2f}:d=0.35,"
+        f"subtitles='{ass_path_clean}',"
         f"format=yuv420p"
     )
 
@@ -229,7 +255,7 @@ def render_scene_clip(
             "-t", f"{duration_sec:.2f}",
             "-i", str(framed_image),
             "-i", str(audio_path),
-            "-vf", f"scale={TARGET_WIDTH}:{TARGET_HEIGHT},fade=t=in:st=0:d=0.3,fade=t=out:st={fade_out_start:.2f}:d=0.35,format=yuv420p",
+            "-vf", f"scale={TARGET_WIDTH}:{TARGET_HEIGHT},subtitles='{ass_path_clean}',format=yuv420p",
             "-c:v", "libx264",
             "-preset", "veryfast",
             "-c:a", "aac",
@@ -250,59 +276,86 @@ def compose_full_video(
     ducking_volume: float = 0.16,
 ) -> Path:
     """
-    Concatenates all scene clips, mixes ducked ambient music, and exports
-    the final 720x1280 vertical MP4.
+    Concatenates all scene clips with xfade crossfade transitions, 
+    mixes ducked ambient music, and exports the final MP4.
     """
     ffmpeg_bin = get_ffmpeg_binary()
     working_dir = output_video_path.parent
 
-    # 1. Create concat manifest file
-    manifest_path = working_dir / "concat_list.txt"
-    with open(manifest_path, "w", encoding="utf-8") as f:
-        for clip in scene_clips:
-            clean_path = str(clip.resolve()).replace("\\", "/")
-            f.write(f"file '{clean_path}'\n")
-
-    # 2. Concat video clips with audio ducking
-    # amix filter mixes voiceover (stream [0:a]) and ambient music (stream [1:a])
-    # with music scaled down to ducking_volume
-    cmd = [
-        ffmpeg_bin,
-        "-y",
-        "-f", "concat",
-        "-safe", "0",
-        "-i", str(manifest_path),
-        "-stream_loop", "-1",
-        "-i", str(music_path),
-        "-filter_complex",
-        f"[1:a]volume={ducking_volume:.2f}[bgm];[0:a][bgm]amix=inputs=2:duration=first:dropout_transition=2[aout]",
-        "-map", "0:v",
-        "-map", "[aout]",
-        "-c:v", "libx264",
-        "-pix_fmt", "yuv420p",
-        "-r", str(FPS),
-        "-c:a", "aac",
-        "-b:a", "128k",
-        "-movflags", "+faststart",
-        str(output_video_path),
-    ]
+    # XFade configuration
+    fade_duration = 0.5
+    
+    # Probe clip durations to calculate crossfade offsets
+    clip_durations = []
+    for clip in scene_clips:
+        probe_cmd = [get_ffprobe_binary(), "-v", "error", "-show_entries", "format=duration", "-of", "default=noprint_wrappers=1:nokey=1", str(clip)]
+        try:
+            res = subprocess.run(probe_cmd, stdout=subprocess.PIPE, text=True)
+            dur = float(res.stdout.strip())
+            clip_durations.append(dur)
+        except Exception:
+            clip_durations.append(6.0)  # fallback
+            
+    # Build filtergraph
+    inputs = []
+    for clip in scene_clips:
+        inputs.extend(["-i", str(clip)])
+    inputs.extend(["-stream_loop", "-1", "-i", str(music_path)])
+    
+    music_idx = len(scene_clips)
+    
+    if len(scene_clips) > 1:
+        v_filters = []
+        a_filters = []
+        
+        current_offset = clip_durations[0] - fade_duration
+        v_filters.append(f"[0:v][1:v]xfade=transition=fade:duration={fade_duration}:offset={current_offset}[v1]")
+        a_filters.append(f"[0:a][1:a]acrossfade=d={fade_duration}[a1]")
+        
+        for i in range(2, len(scene_clips)):
+            current_offset += clip_durations[i-1] - fade_duration
+            v_filters.append(f"[v{i-1}][{i}:v]xfade=transition=fade:duration={fade_duration}:offset={current_offset}[v{i}]")
+            a_filters.append(f"[a{i-1}][{i}:a]acrossfade=d={fade_duration}[a{i}]")
+            
+        last_v = f"[v{len(scene_clips)-1}]"
+        last_a = f"[a{len(scene_clips)-1}]"
+        
+        # Mix in background music
+        filter_str = "; ".join(v_filters + a_filters)
+        filter_str += f"; [{music_idx}:a]volume={ducking_volume:.2f}[bgm]; {last_a}[bgm]amix=inputs=2:duration=first:dropout_transition=2[aout]"
+        
+        cmd = [
+            ffmpeg_bin, "-y",
+            *inputs,
+            "-filter_complex", filter_str,
+            "-map", last_v,
+            "-map", "[aout]",
+            "-c:v", "libx264",
+            "-pix_fmt", "yuv420p",
+            "-r", str(FPS),
+            "-c:a", "aac",
+            "-b:a", "128k",
+            "-movflags", "+faststart",
+            str(output_video_path)
+        ]
+    else:
+        # Fallback if only 1 clip
+        cmd = [
+            ffmpeg_bin, "-y",
+            "-i", str(scene_clips[0]),
+            "-stream_loop", "-1", "-i", str(music_path),
+            "-filter_complex", f"[1:a]volume={ducking_volume:.2f}[bgm]; [0:a][bgm]amix=inputs=2:duration=first:dropout_transition=2[aout]",
+            "-map", "0:v",
+            "-map", "[aout]",
+            "-c:v", "libx264",
+            "-c:a", "aac",
+            str(output_video_path)
+        ]
 
     res = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     if res.returncode != 0:
-        logger.warning(f"Ducked concat failed: {res.stderr.decode('utf-8', errors='ignore')[-300:]}. Trying simple concat...")
-        # Fallback: simple concat without background music
-        simple_cmd = [
-            ffmpeg_bin,
-            "-y",
-            "-f", "concat",
-            "-safe", "0",
-            "-i", str(manifest_path),
-            "-c", "copy",
-            str(output_video_path),
-        ]
-        res_simple = subprocess.run(simple_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        if res_simple.returncode != 0:
-            raise RuntimeError(f"FFmpeg assembly failed: {res_simple.stderr.decode('utf-8', errors='ignore')}")
+        logger.warning(f"Xfade concat failed: {res.stderr.decode('utf-8', errors='ignore')[-500:]}")
+        raise RuntimeError("FFmpeg assembly with crossfade failed.")
 
     logger.info(f"Final video composed successfully: {output_video_path}")
     return output_video_path

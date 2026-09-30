@@ -183,7 +183,15 @@ class JobRunner:
             # Effective clip duration
             clip_dur = max(float(sc.duration_sec), audio_dur + 0.3)
             clip_path = self.job_dir / f"scene_{idx}_clip.mp4"
-            render_scene_clip(framed_img_path, narration_audio, clip_path, duration_sec=clip_dur, scene_number=idx)
+            render_scene_clip(
+                framed_image=framed_img_path,
+                audio_path=narration_audio,
+                output_clip_path=clip_path,
+                duration_sec=clip_dur,
+                scene_number=idx,
+                caption_text=sc.caption_text,
+                audio_dur=audio_dur,
+            )
 
             scene_clip_paths.append(clip_path)
             scene_records.append({
